@@ -1,3 +1,3 @@
 export interface DialogGateway {
-  selectDirectory(): Promise<string | null>;
+  selectDirectory(): Promise<string | null>
 }
