@@ -37,6 +37,14 @@ const SHORTCUT_CONTENT = (
           <span className="key-cap">Z</span>
           <span className="key-action">Undo last action</span>
         </div>
+        <div className="keybind-item">
+          <span className="key-cap">f</span>
+          <span className="key-action">Move to /Family</span>
+        </div>
+        <div className="keybind-item">
+          <span className="key-cap">g</span>
+          <span className="key-action">Move to /Gallery</span>
+        </div>
       </div>
     </div>
   </div>

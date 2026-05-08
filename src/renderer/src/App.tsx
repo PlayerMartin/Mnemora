@@ -16,14 +16,68 @@ const WelcomeScreen = memo(({ onSelect }: { onSelect: () => void }) => (
 
 WelcomeScreen.displayName = 'WelcomeScreen'
 
+function useKeyboardShortcuts(handlers: {
+  handleNext: () => void
+  handlePrev: () => void
+  toggleHUD: () => void
+  closeHUD: () => void
+  handleMove: (folder: string) => void
+  handleDelete: () => void
+}) {
+  const handlersRef = useRef(handlers)
+
+  useEffect(() => {
+    handlersRef.current = handlers
+  })
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
+      const { handleNext, handlePrev, toggleHUD, closeHUD, handleMove, handleDelete } =
+        handlersRef.current
+
+      switch (e.key.toLowerCase()) {
+        case 'arrowright':
+          handleNext()
+          break
+        case 'arrowleft':
+          handlePrev()
+          break
+        case 'delete':
+          handleDelete()
+          break
+        case 'escape':
+          closeHUD()
+          break
+        case '?':
+          toggleHUD()
+          break
+        case '/':
+          if (e.shiftKey) toggleHUD()
+          break
+        case 'f':
+          handleMove('Family')
+          break
+        case 'g':
+          handleMove('Gallery')
+          break
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+}
+
 function App(): React.JSX.Element {
   const [folderContent, setFolderContent] = useState<FolderContent | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [showHUD, setShowHUD] = useState(false)
 
   const handleNext = useCallback(() => {
-    if (!folderContent) return
-    setCurrentIndex((i) => Math.min(i + 1, folderContent.files.length - 1))
+    setCurrentIndex((i) => {
+      if (!folderContent) return i
+      return Math.min(i + 1, folderContent.files.length - 1)
+    })
   }, [folderContent])
 
   const handlePrev = useCallback(() => {
@@ -41,35 +95,66 @@ function App(): React.JSX.Element {
     }
   }, [])
 
-  const handlersRef = useRef({ handleNext, handlePrev, toggleHUD, closeHUD })
-  handlersRef.current = { handleNext, handlePrev, toggleHUD, closeHUD }
+  const isMovingRef = useRef(false)
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const { handleNext, handlePrev, toggleHUD, closeHUD } = handlersRef.current
+  const performFileAction = useCallback(
+    async (action: () => Promise<unknown>) => {
+      if (!folderContent || isMovingRef.current) return
+      const currentFile = folderContent.files[currentIndex]
+      if (!currentFile) return
 
-      switch (e.key) {
-        case 'ArrowRight':
-          handleNext()
-          break
-        case 'ArrowLeft':
-          handlePrev()
-          break
-        case 'Escape':
-          closeHUD()
-          break
-        case '?':
-          toggleHUD()
-          break
-        case '/':
-          if (e.shiftKey) toggleHUD()
-          break
+      isMovingRef.current = true
+
+      try {
+        // Optimistically remove from UI
+        setFolderContent((prev) => {
+          if (!prev) return null
+          const newFiles = prev.files.filter((_, i) => i !== currentIndex)
+          return { ...prev, files: newFiles }
+        })
+
+        if (currentIndex >= folderContent.files.length - 1 && currentIndex > 0) {
+          setCurrentIndex((i) => i - 1)
+        }
+
+        await action()
+      } catch (error) {
+        console.error('File action failed:', error)
+        // Revert optimistic update on failure
+        setFolderContent(folderContent)
+        setCurrentIndex(currentIndex)
+      } finally {
+        setTimeout(() => {
+          isMovingRef.current = false
+        }, 100)
       }
-    }
+    },
+    [folderContent, currentIndex]
+  )
 
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
+  const handleDelete = useCallback(() => {
+    if (!folderContent || !folderContent.files[currentIndex]) return
+    const fileToMove = folderContent.files[currentIndex]
+    performFileAction(() => window.api.deleteFile(fileToMove.path))
+  }, [folderContent, currentIndex, performFileAction])
+
+  const handleMove = useCallback(
+    (targetFolder: string) => {
+      if (!folderContent || !folderContent.files[currentIndex]) return
+      const fileToMove = folderContent.files[currentIndex]
+      performFileAction(() => window.api.moveFile(fileToMove.path, targetFolder))
+    },
+    [folderContent, currentIndex, performFileAction]
+  )
+
+  useKeyboardShortcuts({
+    handleNext,
+    handlePrev,
+    toggleHUD,
+    closeHUD,
+    handleMove,
+    handleDelete
+  })
 
   return (
     <div className="container">
@@ -97,11 +182,22 @@ function App(): React.JSX.Element {
             </div>
           </header>
 
-          <MainViewer
-            file={folderContent.files[currentIndex]}
-            onNext={handleNext}
-            onPrev={handlePrev}
-          />
+          {folderContent.files.length > 0 ? (
+            <MainViewer
+              key={folderContent.files[currentIndex].path}
+              file={folderContent.files[currentIndex]}
+              onNext={handleNext}
+              onPrev={handlePrev}
+            />
+          ) : (
+            <div className="completion-screen">
+              <h2>All Done!</h2>
+              <p>You have sorted all files in this folder.</p>
+              <button className="primary-button" onClick={handleSelectFolder}>
+                Sort Another Folder
+              </button>
+            </div>
+          )}
         </div>
       )}
 
