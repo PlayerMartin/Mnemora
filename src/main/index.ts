@@ -1,6 +1,12 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, protocol, net } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { pathToFileURL, fileURLToPath } from 'url'
+import { registerMediaHandlers } from './infrastructure/ipc/MediaHandlers'
+
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'media', privileges: { bypassCSP: true, standard: true, secure: true, supportFetchAPI: true } }
+])
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -37,7 +43,17 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  ipcMain.on('ping', () => console.log('pong'))
+  protocol.handle('media', (request) => {
+    const url = new URL(request.url)
+    let path = decodeURIComponent(url.pathname)
+    if (url.host && url.host.length === 1) {
+      path = `${url.host}:${path}`
+    }
+    if (path.startsWith('/')) path = path.slice(1)
+    return net.fetch(pathToFileURL(path).toString())
+  })
+
+  registerMediaHandlers()
 
   createWindow()
 
