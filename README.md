@@ -1,34 +1,85 @@
-# MediaSorter
+# Mnemora
 
-An Electron application with React and TypeScript for organizing media files.
+**Mnemora** is a keyboard-driven desktop application for sorting media galleries. Load a folder, assign keys to destinations, and tear through your backlog one keypress at a time.
 
-## Recommended IDE Setup
+Built for photographers, videographers, and anyone sitting on years of unsorted media.
 
-- [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
+---
 
-## Project Setup
+## Features
 
-### Install
+- **Keyboard-first** — the entire sorting workflow is operable without a mouse
+- **Instant moves** — files are moved the moment you press a key, no confirmation dialogs
+- **Undo support** — step back up to 20 actions, including files moved to trash
+- **Session persistence** — close and reopen mid-session without losing your place
+- **Auto-creates subfolders** — target folders are created automatically if they don't exist
+- **Supports images, video, and audio** — inline playback for video, player bar for audio
+- **Completion summary** — see exactly what was sorted, deleted, and skipped when you're done
 
-```bash
-$ npm install
-```
+---
 
-### Development
+## Supported Formats
 
-```bash
-$ npm run dev
-```
+| Type | Formats |
+|------|---------|
+| Image | `.jpg` `.jpeg` `.png` and other common image formats |
+| Video | `.mp4` `.mov` `.avi` `.mkv` and other common video formats |
+| Audio | `.mp3` `.flac` `.wav` `.ogg` and other common audio formats |
 
-### Build
+---
 
-```bash
-# For windows
-$ npm run build:win
+## How It Works
 
-# For macOS
-$ npm run build:mac
+1. Launch Mnemora and select a folder.
+2. Map keys to folder names — for example `f` → `family`, `h` → `holiday`, `m` → `misc`.
+3. Mnemora displays your files one by one, ordered by creation date.
+4. Press a key to sort the current file, or use the built-in controls below.
+5. When every file has been handled, a summary screen shows the results.
 
-# For Linux
-$ npm run build:linux
-```
+---
+
+## Controls
+
+| Key | Action |
+|-----|--------|
+| *your key* | Move current file to the mapped subfolder |
+| `→` | Skip current file |
+| `←` | Go back to the previous file |
+| `Delete` | Send current file to trash |
+| `Ctrl+Z` | Undo the last action |
+| `?` | Toggle keybind overlay |
+
+The keybind overlay shows all active controls — both built-in and your custom mappings — in a toggleable HUD over the main view.
+
+---
+
+## Keybind Configuration
+
+Keybinds are configured at the start of each session and forgotten when the app is closed. The configuration interface is fully keyboard-operable — no mouse required.
+
+---
+
+## Platforms
+
+- Windows
+- Linux
+
+---
+
+## Roadmap
+
+Mnemora is functional but not yet feature-complete.
+
+- [x] Core sorting workflow
+- [x] Session persistence & undo
+- [x] Image, video, and audio support
+- [x] HUD overlay
+- [x] Completion screen
+- [ ] Custom keybind configuration
+- [ ] ...and more
+
+---
+
+## License
+
+Mnemora is open source. Commercial use is restricted — see [LICENSE](./LICENSE) for details.
