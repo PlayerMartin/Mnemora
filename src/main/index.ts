@@ -1,11 +1,14 @@
 import { app, shell, BrowserWindow, protocol, net } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import { pathToFileURL, fileURLToPath } from 'url'
+import { pathToFileURL } from 'url'
 import { registerMediaHandlers } from './infrastructure/ipc/MediaHandlers'
 
 protocol.registerSchemesAsPrivileged([
-  { scheme: 'media', privileges: { bypassCSP: true, standard: true, secure: true, supportFetchAPI: true } }
+  {
+    scheme: 'media',
+    privileges: { bypassCSP: true, standard: true, secure: true, supportFetchAPI: true }
+  }
 ])
 
 function createWindow(): void {
