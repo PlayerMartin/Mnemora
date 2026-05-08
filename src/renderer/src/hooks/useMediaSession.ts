@@ -9,18 +9,30 @@ export type ActionHistoryItem = {
   currentPath: string
   fileIndex: number
   file: MediaFile
+  targetFolder?: string
+}
+
+export type SessionStats = {
+  deletedCount: number
+  movedCount: number
+  foldersCount: Record<string, number>
 }
 
 export function useMediaSession() {
   const [folderContent, setFolderContent] = useState<FolderContent | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [history, setHistory] = useState<ActionHistoryItem[]>([])
+  const [sessionStats, setSessionStats] = useState<SessionStats>({
+    deletedCount: 0,
+    movedCount: 0,
+    foldersCount: {}
+  })
   const isMovingRef = useRef(false)
 
   const filesLength = folderContent?.files.length ?? 0
 
   const handleNext = useCallback(() => {
-    setCurrentIndex((i) => (filesLength > 0 ? Math.min(i + 1, filesLength - 1) : i))
+    setCurrentIndex((i) => (filesLength > 0 ? Math.min(i + 1, filesLength) : i))
   }, [filesLength])
 
   const handlePrev = useCallback(() => {
@@ -33,11 +45,12 @@ export function useMediaSession() {
       setFolderContent(result)
       setCurrentIndex(0)
       setHistory([])
+      setSessionStats({ deletedCount: 0, movedCount: 0, foldersCount: {} })
     }
   }, [])
 
   const performFileAction = useCallback(
-    async (actionType: 'move' | 'delete', action: () => Promise<string>) => {
+    async (actionType: 'move' | 'delete', action: () => Promise<string>, targetFolder?: string) => {
       if (!folderContent || isMovingRef.current) return
       const currentFile = folderContent.files[currentIndex]
       if (!currentFile) return
@@ -52,9 +65,6 @@ export function useMediaSession() {
         })
 
         const prevIndex = currentIndex
-        if (currentIndex >= filesLength - 1 && currentIndex > 0) {
-          setCurrentIndex((i) => i - 1)
-        }
 
         const targetPath = await action()
 
@@ -66,12 +76,26 @@ export function useMediaSession() {
               originalPath: currentFile.path,
               currentPath: targetPath,
               fileIndex: prevIndex,
-              file: currentFile
+              file: currentFile,
+              targetFolder
             }
           ]
           return newHistory.length > HISTORY_STACK_SIZE
             ? newHistory.slice(newHistory.length - HISTORY_STACK_SIZE)
             : newHistory
+        })
+
+        setSessionStats((prev) => {
+          const newStats = { ...prev, foldersCount: { ...prev.foldersCount } }
+          if (actionType === 'delete') {
+            newStats.deletedCount += 1
+          } else {
+            newStats.movedCount += 1
+            if (targetFolder) {
+              newStats.foldersCount[targetFolder] = (newStats.foldersCount[targetFolder] || 0) + 1
+            }
+          }
+          return newStats
         })
       } catch (error) {
         console.error('File action failed:', error)
@@ -103,6 +127,22 @@ export function useMediaSession() {
       })
       setCurrentIndex(lastAction.fileIndex)
       setHistory((prev) => prev.slice(0, -1))
+
+      setSessionStats((prev) => {
+        const newStats = { ...prev, foldersCount: { ...prev.foldersCount } }
+        if (lastAction.type === 'delete') {
+          newStats.deletedCount = Math.max(0, newStats.deletedCount - 1)
+        } else {
+          newStats.movedCount = Math.max(0, newStats.movedCount - 1)
+          if (lastAction.targetFolder && newStats.foldersCount[lastAction.targetFolder]) {
+            newStats.foldersCount[lastAction.targetFolder] -= 1
+            if (newStats.foldersCount[lastAction.targetFolder] <= 0) {
+              delete newStats.foldersCount[lastAction.targetFolder]
+            }
+          }
+        }
+        return newStats
+      })
     } catch (error) {
       console.error('Undo failed:', error)
     } finally {
@@ -122,19 +162,26 @@ export function useMediaSession() {
     (targetFolder: string) => {
       if (!folderContent?.files[currentIndex]) return
       const fileToMove = folderContent.files[currentIndex]
-      performFileAction('move', () => window.api.moveFile(fileToMove.path, targetFolder))
+      performFileAction('move', () => window.api.moveFile(fileToMove.path, targetFolder), targetFolder)
     },
     [folderContent, currentIndex, performFileAction]
   )
 
+  const handleLoopBack = useCallback(() => {
+    setCurrentIndex(0)
+  }, [])
+
   return {
     folderContent,
     currentIndex,
+    history,
+    sessionStats,
     handleNext,
     handlePrev,
     handleSelectFolder,
     handleUndo,
     handleDelete,
-    handleMove
+    handleMove,
+    handleLoopBack
   }
 }

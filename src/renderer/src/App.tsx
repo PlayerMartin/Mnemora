@@ -1,6 +1,7 @@
 import { useState, useCallback, memo } from 'react'
 import MainViewer from './components/MainViewer'
 import HUD from './components/HUD'
+import CompletionScreen from './components/CompletionScreen'
 import { useMediaSession } from './hooks/useMediaSession'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import './assets/main.css'
@@ -23,12 +24,14 @@ function App(): React.JSX.Element {
   const {
     folderContent,
     currentIndex,
+    sessionStats,
     handleNext,
     handlePrev,
     handleSelectFolder,
     handleUndo,
     handleDelete,
-    handleMove
+    handleMove,
+    handleLoopBack
   } = useMediaSession()
 
   const toggleHUD = useCallback(() => setShowHUD((p) => !p), [])
@@ -59,7 +62,7 @@ function App(): React.JSX.Element {
             </div>
             <div className="header-right">
               <div className="stats">
-                {currentIndex + 1} / {folderContent.files.length}
+                {Math.min(currentIndex + 1, folderContent.files.length)} / {folderContent.files.length}
               </div>
               <div className="hud-hint" onClick={toggleHUD}>
                 Press <span className="key-cap">?</span> for help
@@ -70,21 +73,20 @@ function App(): React.JSX.Element {
             </div>
           </header>
 
-          {folderContent.files.length > 0 ? (
+          {currentIndex >= folderContent.files.length ? (
+            <CompletionScreen
+              stats={sessionStats}
+              skippedCount={folderContent.files.length}
+              onSelectFolder={handleSelectFolder}
+              onLoopBack={handleLoopBack}
+            />
+          ) : (
             <MainViewer
               key={folderContent.files[currentIndex].path}
               file={folderContent.files[currentIndex]}
               onNext={handleNext}
               onPrev={handlePrev}
             />
-          ) : (
-            <div className="completion-screen">
-              <h2>All Done!</h2>
-              <p>You have sorted all files in this folder.</p>
-              <button className="primary-button" onClick={handleSelectFolder}>
-                Sort Another Folder
-              </button>
-            </div>
           )}
         </div>
       )}
