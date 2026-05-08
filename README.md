@@ -4,8 +4,6 @@
 
 Built for photographers, videographers, and anyone sitting on years of unsorted media.
 
----
-
 ## Features
 
 - **Keyboard-first** — the entire sorting workflow is operable without a mouse
@@ -16,8 +14,6 @@ Built for photographers, videographers, and anyone sitting on years of unsorted 
 - **Supports images, video, and audio** — inline playback for video, player bar for audio
 - **Completion summary** — see exactly what was sorted, deleted, and skipped when you're done
 
----
-
 ## Supported Formats
 
 | Type | Formats |
@@ -26,8 +22,6 @@ Built for photographers, videographers, and anyone sitting on years of unsorted 
 | Video | `.mp4` `.mov` `.avi` `.mkv` and other common video formats |
 | Audio | `.mp3` `.flac` `.wav` `.ogg` and other common audio formats |
 
----
-
 ## How It Works
 
 1. Launch Mnemora and select a folder.
@@ -35,8 +29,6 @@ Built for photographers, videographers, and anyone sitting on years of unsorted 
 3. Mnemora displays your files one by one, ordered by creation date.
 4. Press a key to sort the current file, or use the built-in controls below.
 5. When every file has been handled, a summary screen shows the results.
-
----
 
 ## Controls
 
@@ -51,20 +43,14 @@ Built for photographers, videographers, and anyone sitting on years of unsorted 
 
 The keybind overlay shows all active controls — both built-in and your custom mappings — in a toggleable HUD over the main view.
 
----
-
 ## Keybind Configuration
 
 Keybinds are configured at the start of each session and forgotten when the app is closed. The configuration interface is fully keyboard-operable — no mouse required.
-
----
 
 ## Platforms
 
 - Windows
 - Linux
-
----
 
 ## Roadmap
 
@@ -78,8 +64,6 @@ Mnemora is functional but not yet feature-complete.
 - [ ] Custom keybind configuration
 - [ ] ...and more
 
----
-
 ## License
 
-Mnemora is open source. Commercial use is restricted — see [LICENSE](./LICENSE) for details.
+Mnemora is open source. Commercial use is restricted.
