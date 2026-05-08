@@ -3,7 +3,10 @@ import { electronAPI } from '@electron-toolkit/preload'
 import { FolderContent } from '../shared/types'
 
 const api = {
-  selectFolder: (): Promise<FolderContent | null> => ipcRenderer.invoke('media:select-folder')
+  selectFolder: (): Promise<FolderContent | null> => ipcRenderer.invoke('media:select-folder'),
+  moveFile: (filePath: string, targetFolderName: string): Promise<string> =>
+    ipcRenderer.invoke('media:move-file', filePath, targetFolderName),
+  deleteFile: (filePath: string): Promise<void> => ipcRenderer.invoke('media:delete-file', filePath)
 }
 
 if (process.contextIsolated) {
