@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { MediaFile } from '../../../shared/types'
 
 interface MainViewerProps {
@@ -6,32 +7,38 @@ interface MainViewerProps {
   onPrev: () => void
 }
 
-export default function MainViewer({ file, onNext, onPrev }: MainViewerProps) {
+const MainViewer = memo(function MainViewer({ file, onNext, onPrev }: MainViewerProps) {
   const mediaUrl = `media:///${file.path.replace(/\\/g, '/')}`
 
   return (
     <div className="main-viewer">
       <div className="media-container">
-        {file.type === 'image' && <img src={mediaUrl} alt={file.name} />}
-        {file.type === 'video' && (
+        {file.type === 'image' ? (
+          <img src={mediaUrl} alt={file.name} />
+        ) : file.type === 'video' ? (
           <video src={mediaUrl} controls autoPlay />
-        )}
-        {file.type === 'audio' && (
+        ) : file.type === 'audio' ? (
           <div className="audio-player">
             <div className="audio-icon">🎵</div>
             <audio src={mediaUrl} controls autoPlay />
             <div className="audio-info">{file.name}</div>
           </div>
-        )}
+        ) : null}
       </div>
 
-      <div className="viewer-controls">
-        <button onClick={onPrev} className="control-btn">← Previous</button>
-        <div className="file-counter">
+      <div className="viewer-footer">
+        <button onClick={onPrev} className="control-btn" title="Previous (Left Arrow)">
+          <span>←</span> Previous
+        </button>
+        <div className="file-name" title={file.path}>
           {file.name}
         </div>
-        <button onClick={onNext} className="control-btn">Next →</button>
+        <button onClick={onNext} className="control-btn" title="Next (Right Arrow)">
+          Next <span>→</span>
+        </button>
       </div>
     </div>
   )
-}
+})
+
+export default MainViewer
