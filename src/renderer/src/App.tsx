@@ -53,6 +53,7 @@ function App(): React.JSX.Element {
     keybinds,
     onUnboundKey: (key) => setBindingKey(key),
     handleClearKeybinds: clearKeybinds,
+    handleSelectFolder: handleSelectFolder,
     isDialogOpen: bindingKey !== null,
     isHUDOpen: showHUD
   })

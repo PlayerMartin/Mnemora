@@ -48,6 +48,11 @@ const HUD = memo(({ isVisible, onClose, keybinds }: HUDProps) => {
               </div>
               <div className="keybind-item">
                 <span className="key-cap">Ctrl</span>
+                <span className="key-cap">O</span>
+                <span className="key-action">Select source folder</span>
+              </div>
+              <div className="keybind-item">
+                <span className="key-cap">Ctrl</span>
                 <span className="key-cap">Shift</span>
                 <span className="key-cap">C</span>
                 <span className="key-action">Reset all keybinds</span>

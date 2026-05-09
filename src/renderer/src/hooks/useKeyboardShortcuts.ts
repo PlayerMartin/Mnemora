@@ -12,6 +12,7 @@ export type ShortcutHandlers = {
   keybinds: Record<string, string>
   onUnboundKey: (key: string) => void
   handleClearKeybinds: () => void
+  handleSelectFolder: () => void
   isDialogOpen: boolean
   isHUDOpen: boolean
 }
@@ -24,7 +25,7 @@ export function useKeyboardShortcuts(handlers: ShortcutHandlers) {
       const { 
         handleNext, handlePrev, toggleHUD, closeHUD, 
         handleMove, handleDelete, handleUndo, 
-        keybinds, onUnboundKey, handleClearKeybinds, isDialogOpen, isHUDOpen 
+        keybinds, onUnboundKey, handleClearKeybinds, handleSelectFolder, isDialogOpen, isHUDOpen 
       } = handlersRef.current
 
       if (isDialogOpen) return
@@ -56,6 +57,12 @@ export function useKeyboardShortcuts(handlers: ShortcutHandlers) {
         case 'z':
           if (e.ctrlKey && !isHUDOpen) handleUndo()
           return
+        case 'o':
+          if (e.ctrlKey) {
+            handleSelectFolder()
+            return
+          }
+          break
         case 'c':
           if (e.ctrlKey && e.shiftKey) {
             handleClearKeybinds()
