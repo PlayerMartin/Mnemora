@@ -27,6 +27,7 @@ export function useMediaSession() {
     movedCount: 0,
     foldersCount: {}
   })
+  const [keybinds, setKeybinds] = useState<Record<string, string>>({})
   const isMovingRef = useRef(false)
 
   const filesLength = folderContent?.files.length ?? 0
@@ -46,6 +47,7 @@ export function useMediaSession() {
       setCurrentIndex(0)
       setHistory([])
       setSessionStats({ deletedCount: 0, movedCount: 0, foldersCount: {} })
+      setKeybinds({})
     }
   }, [])
 
@@ -171,6 +173,14 @@ export function useMediaSession() {
     setCurrentIndex(0)
   }, [])
 
+  const addKeybind = useCallback((key: string, folder: string) => {
+    setKeybinds((prev) => ({ ...prev, [key]: folder }))
+  }, [])
+
+  const clearKeybinds = useCallback(() => {
+    setKeybinds({})
+  }, [])
+
   return {
     folderContent,
     currentIndex,
@@ -182,6 +192,9 @@ export function useMediaSession() {
     handleUndo,
     handleDelete,
     handleMove,
-    handleLoopBack
+    handleLoopBack,
+    keybinds,
+    addKeybind,
+    clearKeybinds
   }
 }

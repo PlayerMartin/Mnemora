@@ -9,6 +9,11 @@ export type ShortcutHandlers = {
   handleMove: (folder: string) => void
   handleDelete: () => void
   handleUndo: () => void
+  keybinds: Record<string, string>
+  onUnboundKey: (key: string) => void
+  handleClearKeybinds: () => void
+  isDialogOpen: boolean
+  isHUDOpen: boolean
 }
 
 export function useKeyboardShortcuts(handlers: ShortcutHandlers) {
@@ -16,40 +21,59 @@ export function useKeyboardShortcuts(handlers: ShortcutHandlers) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent): void => {
-      const { handleNext, handlePrev, toggleHUD, closeHUD, handleMove, handleDelete, handleUndo } =
-        handlersRef.current
+      const { 
+        handleNext, handlePrev, toggleHUD, closeHUD, 
+        handleMove, handleDelete, handleUndo, 
+        keybinds, onUnboundKey, handleClearKeybinds, isDialogOpen, isHUDOpen 
+      } = handlersRef.current
 
-      switch (e.key.toLowerCase()) {
+      if (isDialogOpen) return
+
+      const key = e.key.toLowerCase()
+
+      if (key === 'escape') {
+        if (isHUDOpen) closeHUD()
+        return
+      }
+
+      if (key === '?' || (key === '/' && e.shiftKey)) {
+        toggleHUD()
+        return
+      }
+
+      switch (key) {
         case 'arrowright':
           e.preventDefault()
-          handleNext()
-          break
+          if (!isHUDOpen) handleNext()
+          return
         case 'arrowleft':
           e.preventDefault()
-          handlePrev()
-          break
+          if (!isHUDOpen) handlePrev()
+          return
         case 'delete':
-          handleDelete()
-          break
-        case 'escape':
-          closeHUD()
-          break
+          if (!isHUDOpen) handleDelete()
+          return
         case 'z':
-          if (e.ctrlKey) handleUndo()
-          break
-        case '?':
-          toggleHUD()
-          break
-        case '/':
-          if (e.shiftKey) toggleHUD()
-          break
-        case 'f':
-          handleMove('Family')
-          break
-        case 'g':
-          handleMove('Gallery')
+          if (e.ctrlKey && !isHUDOpen) handleUndo()
+          return
+        case 'c':
+          if (e.ctrlKey && e.shiftKey) {
+            handleClearKeybinds()
+            return
+          }
           break
       }
+
+      // Ignore modifiers and control keys for custom keybinds
+      if (e.ctrlKey || e.altKey || e.metaKey || key.length > 1) return
+
+      if (keybinds[key]) {
+        if (!isHUDOpen) {
+          handleMove(keybinds[key])
+        }
+        return
+      }
+      onUnboundKey(key)
     }
 
     window.addEventListener('keydown', handleKeyDown)

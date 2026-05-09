@@ -2,6 +2,7 @@ import { useState, useCallback, memo } from 'react'
 import MainViewer from './components/MainViewer'
 import HUD from './components/HUD'
 import CompletionScreen from './components/CompletionScreen'
+import KeybindDialog from './components/KeybindDialog'
 import { useMediaSession } from './hooks/useMediaSession'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import './assets/main.css'
@@ -20,6 +21,7 @@ WelcomeScreen.displayName = 'WelcomeScreen'
 
 function App(): React.JSX.Element {
   const [showHUD, setShowHUD] = useState(false)
+  const [bindingKey, setBindingKey] = useState<string | null>(null)
 
   const {
     folderContent,
@@ -31,7 +33,10 @@ function App(): React.JSX.Element {
     handleUndo,
     handleDelete,
     handleMove,
-    handleLoopBack
+    handleLoopBack,
+    keybinds,
+    addKeybind,
+    clearKeybinds
   } = useMediaSession()
 
   const toggleHUD = useCallback(() => setShowHUD((p) => !p), [])
@@ -44,8 +49,25 @@ function App(): React.JSX.Element {
     closeHUD,
     handleMove,
     handleDelete,
-    handleUndo
+    handleUndo,
+    keybinds,
+    onUnboundKey: (key) => setBindingKey(key),
+    handleClearKeybinds: clearKeybinds,
+    isDialogOpen: bindingKey !== null,
+    isHUDOpen: showHUD
   })
+
+  const handleBind = useCallback(
+    (key: string, folder: string) => {
+      addKeybind(key, folder)
+      setBindingKey(null)
+    },
+    [addKeybind]
+  )
+
+  const handleCancelBind = useCallback(() => {
+    setBindingKey(null)
+  }, [])
 
   return (
     <div className="container">
@@ -91,7 +113,8 @@ function App(): React.JSX.Element {
         </div>
       )}
 
-      <HUD isVisible={showHUD} onClose={closeHUD} />
+      <HUD isVisible={showHUD} onClose={closeHUD} keybinds={keybinds} />
+      <KeybindDialog bindKey={bindingKey} onBind={handleBind} onCancel={handleCancelBind} />
     </div>
   )
 }
