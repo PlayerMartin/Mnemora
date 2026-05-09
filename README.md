@@ -61,7 +61,7 @@ Mnemora is functional but not yet feature-complete.
 - [x] Image, video, and audio support
 - [x] HUD overlay
 - [x] Completion screen
-- [ ] Custom keybind configuration
+- [x] Custom keybind configuration
 - [ ] ...and more
 
 ## License
