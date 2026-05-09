@@ -1,4 +1,4 @@
-import { useState, useCallback, memo } from 'react'
+import { useState, useCallback, memo, useMemo } from 'react'
 import MainViewer from './components/MainViewer'
 import HUD from './components/HUD'
 import CompletionScreen from './components/CompletionScreen'
@@ -7,15 +7,32 @@ import { useMediaSession } from './hooks/useMediaSession'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import './assets/main.css'
 
-const WelcomeScreen = memo(({ onSelect }: { onSelect: () => void }) => (
-  <div className="welcome-screen">
-    <h1>Mnemora</h1>
-    <p>The efficient way to organize your media galleries with a single keypress.</p>
-    <button className="primary-button" onClick={onSelect}>
-      Select Source Folder
-    </button>
-  </div>
-))
+const WelcomeScreen = memo(({ onSelect }: { onSelect: () => void }) => {
+  const messages = [
+    "Back up your files — trust me! (￣▽￣)b",
+    "(•̀ᴗ•́)و Back. Up. Your. Files. Seriously, do it!",
+    "(￢_￢) You backed up today, right? ...Right?",
+    "щ(ಠ益ಠщ) NO BACKUP?! Friend, please—",
+    "(•ω•) A little backup goes a long way, trust me~",
+    "(ﾟヮﾟ) Fun fact: backups save lives. Well, files. Same thing!"
+  ]
+
+  const randomMessage = useMemo(
+    () => messages[Math.floor(Math.random() * messages.length)],
+    []
+  )
+
+  return (
+    <div className="welcome-screen">
+      <h1>Mnemora</h1>
+      <p>The efficient way to organize your media galleries with a single keypress.</p>
+      <em style={{ opacity: 0.5, fontSize: '0.85em' }}>{randomMessage}</em>
+      <button className="primary-button" onClick={onSelect}>
+        Select Source Folder
+      </button>
+    </div>
+  )
+})
 
 WelcomeScreen.displayName = 'WelcomeScreen'
 
