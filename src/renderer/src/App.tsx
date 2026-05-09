@@ -9,7 +9,7 @@ import './assets/main.css'
 
 const WelcomeScreen = memo(({ onSelect }: { onSelect: () => void }) => (
   <div className="welcome-screen">
-    <h1>MediaSorter</h1>
+    <h1>Mnemora</h1>
     <p>The efficient way to organize your media galleries with a single keypress.</p>
     <button className="primary-button" onClick={onSelect}>
       Select Source Folder
