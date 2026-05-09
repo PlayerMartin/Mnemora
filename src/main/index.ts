@@ -2,12 +2,16 @@ import { app, shell, BrowserWindow, protocol, net } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { pathToFileURL } from 'url'
+import { createReadStream } from 'fs'
+import { Readable } from 'stream'
+import mime from 'mime-types'
 import { registerMediaHandlers } from './infrastructure/ipc/MediaHandlers'
+import { resolveByteRange } from './infrastructure/protocol/resolveByteRange'
 
 protocol.registerSchemesAsPrivileged([
   {
     scheme: 'media',
-    privileges: { bypassCSP: true, standard: true, secure: true, supportFetchAPI: true }
+    privileges: { bypassCSP: true, standard: true, secure: true, supportFetchAPI: true, stream: true }
   }
 ])
 
@@ -46,14 +50,32 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  protocol.handle('media', (request) => {
+  protocol.handle('media', async (request) => {
     const url = new URL(request.url)
     let path = decodeURIComponent(url.pathname)
     if (url.host && url.host.length === 1) {
       path = `${url.host}:${path}`
     }
     if (path.startsWith('/')) path = path.slice(1)
-    return net.fetch(pathToFileURL(path).toString())
+
+    const rangeHeader = request.headers.get('Range')
+    if (!rangeHeader) {
+      return net.fetch(pathToFileURL(path).toString())
+    }
+
+    const { start, end, fileSize } = await resolveByteRange(path, rangeHeader)
+    const contentType = mime.lookup(path) || 'application/octet-stream'
+
+    const webStream = Readable.toWeb(createReadStream(path, { start, end })) as ReadableStream
+    return new Response(webStream, {
+      status: 206,
+      headers: {
+        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+        'Accept-Ranges': 'bytes',
+        'Content-Length': String(end - start + 1),
+        'Content-Type': contentType
+      }
+    })
   })
 
   registerMediaHandlers()

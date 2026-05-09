@@ -21,9 +21,11 @@ export function useKeyboardShortcuts(handlers: ShortcutHandlers) {
 
       switch (e.key.toLowerCase()) {
         case 'arrowright':
+          e.preventDefault()
           handleNext()
           break
         case 'arrowleft':
+          e.preventDefault()
           handlePrev()
           break
         case 'delete':
