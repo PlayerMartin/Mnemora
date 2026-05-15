@@ -51,6 +51,7 @@ Keybinds are configured at the start of each session and forgotten when the app 
 
 - Windows
 - Linux
+- MacOS
 
 ## Roadmap
 

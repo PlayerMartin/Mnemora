@@ -1,5 +1,6 @@
-appId: com.electron.app
-productName: mnemora
+appId: com.martin.mnemora
+productName: Mnemora
+icon: src/renderer/src/assets/app_icon.png
 directories:
   buildResources: build
 files:
@@ -12,8 +13,11 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: mnemora
+  executableName: Mnemora
 nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  runAfterFinish: true
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
@@ -26,9 +30,13 @@ mac:
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
+  category: public.app-category.utilities
+  artifactName: ${name}-${version}-setup.${ext}
 dmg:
-  artifactName: ${name}-${version}.${ext}
+  artifactName: ${name}-${version}-setup.${ext}
 linux:
+  executableName: Mnemora
+  artifactName: ${name}-${version}-setup.${ext}
   target:
     - AppImage
     - snap
@@ -36,8 +44,7 @@ linux:
   maintainer: electronjs.org
   category: Utility
 appImage:
-  artifactName: ${name}-${version}.${ext}
+  artifactName: ${name}-${version}-setup.${ext}
 npmRebuild: false
 publish:
-  provider: generic
-  url: https://example.com/auto-updates
+  provider: github
