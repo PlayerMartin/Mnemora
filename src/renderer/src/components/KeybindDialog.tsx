@@ -24,7 +24,7 @@ const KeybindDialog = memo(({ bindKey, onBind, onCancel }: KeybindDialogProps) =
 
   if (!bindKey) return null
 
-  const validateFolderName = (name: string) => {
+  const validateFolderName = (name: string): boolean => {
     if (INVALID_FOLDER_CHARS_REGEX.test(name)) {
       setError('Folder name contains invalid characters (< > : " / \\ | ? *)')
       return false
@@ -33,13 +33,13 @@ const KeybindDialog = memo(({ bindKey, onBind, onCancel }: KeybindDialogProps) =
     return true
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const value = e.target.value
     setFolderName(value)
     validateFolderName(value)
   }
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault()
     const trimmed = folderName.trim()
     if (trimmed && validateFolderName(trimmed)) {
@@ -49,7 +49,7 @@ const KeybindDialog = memo(({ bindKey, onBind, onCancel }: KeybindDialogProps) =
     }
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent): void => {
     if (e.key === 'Escape') {
       // Stop the native event from bubbling up to the window listener
       // Otherwise, the HUD shortcut hook will catch it and close the HUD as well
@@ -76,12 +76,23 @@ const KeybindDialog = memo(({ bindKey, onBind, onCancel }: KeybindDialogProps) =
             placeholder="e.g. Family"
             maxLength={20}
           />
-          {error ? <div className="error-message" style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem' }}>{error}</div> : null}
+          {error ? (
+            <div
+              className="error-message"
+              style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem' }}
+            >
+              {error}
+            </div>
+          ) : null}
           <div className="dialog-actions">
             <button type="button" className="secondary-button" onClick={onCancel}>
               Cancel
             </button>
-            <button type="submit" className="primary-button" disabled={!folderName.trim() || !!error}>
+            <button
+              type="submit"
+              className="primary-button"
+              disabled={!folderName.trim() || !!error}
+            >
               Save
             </button>
           </div>

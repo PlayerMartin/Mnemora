@@ -17,15 +17,25 @@ export type ShortcutHandlers = {
   isHUDOpen: boolean
 }
 
-export function useKeyboardShortcuts(handlers: ShortcutHandlers) {
+export function useKeyboardShortcuts(handlers: ShortcutHandlers): void {
   const handlersRef = useLatest(handlers)
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent): void => {
-      const { 
-        handleNext, handlePrev, toggleHUD, closeHUD, 
-        handleMove, handleDelete, handleUndo, 
-        keybinds, onUnboundKey, handleClearKeybinds, handleSelectFolder, isDialogOpen, isHUDOpen 
+      const {
+        handleNext,
+        handlePrev,
+        toggleHUD,
+        closeHUD,
+        handleMove,
+        handleDelete,
+        handleUndo,
+        keybinds,
+        onUnboundKey,
+        handleClearKeybinds,
+        handleSelectFolder,
+        isDialogOpen,
+        isHUDOpen
       } = handlersRef.current
 
       if (isDialogOpen) return

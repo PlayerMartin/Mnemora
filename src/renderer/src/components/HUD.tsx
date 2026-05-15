@@ -64,16 +64,23 @@ const HUD = memo(({ isVisible, onClose, keybinds }: HUDProps) => {
             <h3>Custom Keybinds</h3>
             <div
               className="keybind-list"
-              style={Object.keys(keybinds).length > 0 ? {
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                columnGap: '1.5rem',
-                rowGap: '0.75rem'
-              } : undefined}
+              style={
+                Object.keys(keybinds).length > 0
+                  ? {
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                      columnGap: '1.5rem',
+                      rowGap: '0.75rem'
+                    }
+                  : undefined
+              }
             >
               {Object.keys(keybinds).length === 0 ? (
                 <div className="keybind-item">
-                  <span className="key-action" style={{ fontStyle: 'italic', color: 'var(--text-dim)' }}>
+                  <span
+                    className="key-action"
+                    style={{ fontStyle: 'italic', color: 'var(--text-dim)' }}
+                  >
                     Press any unbound key to create a new folder shortcut.
                   </span>
                 </div>

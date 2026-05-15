@@ -11,7 +11,13 @@ import { resolveByteRange } from './infrastructure/protocol/resolveByteRange'
 protocol.registerSchemesAsPrivileged([
   {
     scheme: 'media',
-    privileges: { bypassCSP: true, standard: true, secure: true, supportFetchAPI: true, stream: true }
+    privileges: {
+      bypassCSP: true,
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      stream: true
+    }
   }
 ])
 

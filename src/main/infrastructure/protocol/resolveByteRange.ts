@@ -1,6 +1,9 @@
 import { stat } from 'fs/promises'
 
-export async function resolveByteRange(path: string, rangeHeader: string) {
+export async function resolveByteRange(
+  path: string,
+  rangeHeader: string
+): Promise<{ start: number; end: number; fileSize: number }> {
   const fileSize = (await stat(path)).size
   const [, startStr, endStr] = rangeHeader.match(/bytes=(\d+)-(\d*)/) ?? []
   const start = parseInt(startStr, 10)

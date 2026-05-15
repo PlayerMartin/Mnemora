@@ -18,7 +18,24 @@ export type SessionStats = {
   foldersCount: Record<string, number>
 }
 
-export function useMediaSession() {
+export type MediaSession = {
+  folderContent: FolderContent | null
+  currentIndex: number
+  history: ActionHistoryItem[]
+  sessionStats: SessionStats
+  handleNext: () => void
+  handlePrev: () => void
+  handleSelectFolder: () => Promise<void>
+  handleUndo: () => Promise<void>
+  handleDelete: () => void
+  handleMove: (targetFolder: string) => void
+  handleLoopBack: () => void
+  keybinds: Record<string, string>
+  addKeybind: (key: string, folder: string) => void
+  clearKeybinds: () => void
+}
+
+export function useMediaSession(): MediaSession {
   const [folderContent, setFolderContent] = useState<FolderContent | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [history, setHistory] = useState<ActionHistoryItem[]>([])
@@ -109,7 +126,7 @@ export function useMediaSession() {
         }, 100)
       }
     },
-    [folderContent, currentIndex, filesLength]
+    [folderContent, currentIndex]
   )
 
   const handleUndo = useCallback(async () => {
@@ -164,7 +181,11 @@ export function useMediaSession() {
     (targetFolder: string) => {
       if (!folderContent?.files[currentIndex]) return
       const fileToMove = folderContent.files[currentIndex]
-      performFileAction('move', () => window.api.moveFile(fileToMove.path, targetFolder), targetFolder)
+      performFileAction(
+        'move',
+        () => window.api.moveFile(fileToMove.path, targetFolder),
+        targetFolder
+      )
     },
     [folderContent, currentIndex, performFileAction]
   )

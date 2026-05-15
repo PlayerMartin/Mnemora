@@ -14,8 +14,14 @@ export class MoveFileUseCase {
       try {
         await this.mediaRepository.moveFile(filePath, targetPath)
         return targetPath
-      } catch (error: any) {
-        if (error.code === 'EBUSY' && retries > 1) {
+      } catch (error: unknown) {
+        if (
+          error &&
+          typeof error === 'object' &&
+          'code' in error &&
+          error.code === 'EBUSY' &&
+          retries > 1
+        ) {
           retries--
           await new Promise((resolve) => setTimeout(resolve, 200))
           continue

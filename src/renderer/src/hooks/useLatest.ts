@@ -1,6 +1,6 @@
 import { useRef, useLayoutEffect } from 'react'
 
-export function useLatest<T>(value: T) {
+export function useLatest<T>(value: T): React.RefObject<T> {
   const ref = useRef(value)
   useLayoutEffect(() => {
     ref.current = value
