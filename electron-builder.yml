@@ -4,6 +4,7 @@ icon: src/renderer/src/assets/app_icon.png
 directories:
   buildResources: build
 files:
+  - out/**
   - '!**/.vscode/*'
   - '!src/*'
   - '!electron.vite.config.{js,ts,mjs,cjs}'
