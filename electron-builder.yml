@@ -1,8 +1,9 @@
 appId: com.martin.mnemora
 productName: Mnemora
 icon: src/renderer/src/assets/app_icon.png
-directories:
-  buildResources: build
+artifactName: ${name}-${version}-setup.${ext}
+npmRebuild: false
+
 files:
   - '!**/.vscode/*'
   - '!src/**/*'
@@ -10,38 +11,30 @@ files:
   - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+
 win:
   executableName: Mnemora
+
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
   runAfterFinish: true
-  artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
+
 mac:
   extendInfo:
-    - NSCameraUsageDescription: Application requests access to the device's camera.
-    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
-    - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
-    - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
+    NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
+    NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
   category: public.app-category.utilities
-  artifactName: ${name}-${version}-setup.${ext}
-dmg:
-  artifactName: ${name}-${version}-setup.${ext}
+
 linux:
-  executableName: Mnemora
-  artifactName: ${name}-${version}-setup.${ext}
   target:
     - AppImage
-    - snap
-    - deb
-  maintainer: electronjs.org
+  maintainer: martin
   category: Utility
-appImage:
-  artifactName: ${name}-${version}-setup.${ext}
-npmRebuild: false
+
 publish:
   provider: github
