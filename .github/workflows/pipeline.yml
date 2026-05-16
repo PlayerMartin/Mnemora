@@ -46,10 +46,13 @@ jobs:
         include:
           - os: ubuntu-latest
             build-flag: --linux
+            artifact: dist/*.AppImage
           - os: windows-latest
             build-flag: --win
+            artifact: dist/*.exe
           - os: macos-latest
             build-flag: --mac
+            artifact: dist/*.dmg
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -61,7 +64,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm run build
-      - name: Package & Publish
-        run: pnpm exec electron-builder ${{ matrix.build-flag }} --publish always
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Package
+        run: pnpm exec electron-builder ${{ matrix.build-flag }}
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.artifact }}
