@@ -18,12 +18,15 @@ win:
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
+  differentialPackage: false
   runAfterFinish: true
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
 
 mac:
+  target:
+    - dmg
   extendInfo:
     NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
@@ -35,6 +38,3 @@ linux:
     - AppImage
   maintainer: martin
   category: Utility
-
-publish:
-  provider: github
