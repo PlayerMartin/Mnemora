@@ -8,18 +8,17 @@ Built for photographers, videographers, and anyone sitting on years of unsorted 
 
 - **Keyboard-first** — the entire sorting workflow is operable without a mouse
 - **Instant moves** — files are moved the moment you press a key, no confirmation dialogs
-- **Undo support** — step back up to 20 actions, including files moved to trash
-- **Session persistence** — close and reopen mid-session without losing your place
+- **Undo support** — step back up to 200 actions, including files moved to trash
 - **Auto-creates subfolders** — target folders are created automatically if they don't exist
 - **Supports images, video, and audio** — inline playback for video, player bar for audio
 - **Completion summary** — see exactly what was sorted, deleted, and skipped when you're done
 
 ## Supported Formats
 
-| Type | Formats |
-|------|---------|
-| Image | `.jpg` `.jpeg` `.png` and other common image formats |
-| Video | `.mp4` `.mov` `.avi` `.mkv` and other common video formats |
+| Type  | Formats                                                     |
+| ----- | ----------------------------------------------------------- |
+| Image | `.jpg` `.jpeg` `.png` and other common image formats        |
+| Video | `.mp4` `.mov` `.avi` `.mkv` and other common video formats  |
 | Audio | `.mp3` `.flac` `.wav` `.ogg` and other common audio formats |
 
 ## How It Works
@@ -32,14 +31,18 @@ Built for photographers, videographers, and anyone sitting on years of unsorted 
 
 ## Controls
 
-| Key | Action |
-|-----|--------|
-| *your key* | Move current file to the mapped subfolder |
-| `→` | Skip current file |
-| `←` | Go back to the previous file |
-| `Delete` | Send current file to trash |
-| `Ctrl+Z` | Undo the last action |
-| `?` | Toggle keybind overlay |
+| Key               | Action                                    |
+| ----------------- | ----------------------------------------- |
+| _your key_        | Move current file to the mapped subfolder |
+| `→`               | Skip current file                         |
+| `←`               | Go back to the previous file              |
+| `Delete`          | Send current file to trash                |
+| `Ctrl+Z`          | Undo the last action                      |
+| `Ctrl+O`          | Select source folder                      |
+| `Ctrl+Shift+C`    | Reset all keybinds                        |
+| `Ctrl+<key>`      | Edit a custom keybind                     |
+| `Ctrl+Shift+<key>`| Remove a custom keybind                   |
+| `?`               | Toggle keybind overlay                    |
 
 The keybind overlay shows all active controls — both built-in and your custom mappings — in a toggleable HUD over the main view.
 
@@ -58,11 +61,12 @@ Keybinds are configured at the start of each session and forgotten when the app 
 Mnemora is functional but not yet feature-complete.
 
 - [x] Core sorting workflow
-- [x] Session persistence & undo
+- [x] Undo support
 - [x] Image, video, and audio support
 - [x] HUD overlay
 - [x] Completion screen
 - [x] Custom keybind configuration
+- [ ] Session persistence
 - [ ] ...and more
 
 ## License
