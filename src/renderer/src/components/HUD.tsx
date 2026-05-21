@@ -57,6 +57,17 @@ const HUD = memo(({ isVisible, onClose, keybinds }: HUDProps) => {
                 <span className="key-cap">C</span>
                 <span className="key-action">Reset all keybinds</span>
               </div>
+              <div className="keybind-item">
+                <span className="key-cap">Ctrl</span>
+                <span className="key-cap">&lt;key&gt;</span>
+                <span className="key-action">Edit a custom keybind</span>
+              </div>
+              <div className="keybind-item">
+                <span className="key-cap">Ctrl</span>
+                <span className="key-cap">Shift</span>
+                <span className="key-cap">&lt;key&gt;</span>
+                <span className="key-action">Remove a custom keybind</span>
+              </div>
             </div>
           </div>
 
