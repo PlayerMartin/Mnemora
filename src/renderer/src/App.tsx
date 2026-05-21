@@ -13,7 +13,9 @@ const MESSAGES = [
   '(￢_￢) You backed up today, right? ...Right?',
   'щ(ಠ益ಠщ) NO BACKUP?! Friend, please—',
   '(•ω•) A little backup goes a long way, trust me~',
-  '(ﾟヮﾟ) Fun fact: backups save lives. Well, files. Same thing!'
+  '(ﾟヮﾟ) Fun fact: backups save lives. Well, files. Same thing!',
+  "(๑•̀ㅂ•́๑) You're doing great! Just remember to back up every now and then.",
+  "(づ￣3￣)づ Don't forget to back up your important files."
 ]
 
 const RANDOM_WELCOME_MESSAGE = MESSAGES[Math.floor(Math.random() * MESSAGES.length)]
