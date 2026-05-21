@@ -1,138 +1,74 @@
-import { useState, useCallback, memo } from 'react'
-import MainViewer from './components/MainViewer'
-import HUD from './components/HUD'
-import CompletionScreen from './components/CompletionScreen'
-import KeybindDialog from './components/KeybindDialog'
-import { useMediaSession } from './hooks/useMediaSession'
-import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
+import { useMediaWorkflow } from './hooks/useMediaWorkflow'
+import WelcomeScreen from './components/screens/WelcomeScreen'
+import CompletionScreen from './components/screens/CompletionScreen'
+import ViewHeader from './components/layout/ViewHeader'
+import MainViewer from './components/media/MainViewer'
+import HUD from './components/layout/HUD'
+import KeybindDialog from './components/dialogs/KeybindDialog'
 import './assets/main.css'
 
-const MESSAGES = [
-  'Back up your files — trust me! (￣▽￣)b',
-  '(•̀ᴗ•́)و Back. Up. Your. Files. Seriously, do it!',
-  '(￢_￢) You backed up today, right? ...Right?',
-  'щ(ಠ益ಠщ) NO BACKUP?! Friend, please—',
-  '(•ω•) A little backup goes a long way, trust me~',
-  '(ﾟヮﾟ) Fun fact: backups save lives. Well, files. Same thing!',
-  "(๑•̀ㅂ•́๑) You're doing great! Just remember to back up every now and then.",
-  "(づ￣3￣)づ Don't forget to back up your important files."
-]
-
-const RANDOM_WELCOME_MESSAGE = MESSAGES[Math.floor(Math.random() * MESSAGES.length)]
-
-const WelcomeScreen = memo(({ onSelect }: { onSelect: () => void }) => {
-  return (
-    <div className="welcome-screen">
-      <h1>Mnemora</h1>
-      <p>The efficient way to organize your media galleries with a single keypress.</p>
-      <em style={{ opacity: 0.5, fontSize: '0.85em' }}>{RANDOM_WELCOME_MESSAGE}</em>
-      <button className="primary-button" onClick={onSelect}>
-        Select Source Folder
-      </button>
-    </div>
-  )
-})
-
-WelcomeScreen.displayName = 'WelcomeScreen'
-
 function App(): React.JSX.Element {
-  const [showHUD, setShowHUD] = useState(false)
-  const [bindingKey, setBindingKey] = useState<string | null>(null)
-
   const {
+    showHUD,
+    toggleHUD,
+    closeHUD,
+    bindingKey,
+    editingFolder,
+    handleBind,
+    handleCancelBind,
     folderContent,
     currentIndex,
     sessionStats,
     handleNext,
     handlePrev,
     handleSelectFolder,
-    handleUndo,
-    handleDelete,
-    handleMove,
     handleLoopBack,
-    keybinds,
-    addKeybind,
-    clearKeybinds
-  } = useMediaSession()
+    keybinds
+  } = useMediaWorkflow()
 
-  const toggleHUD = useCallback(() => setShowHUD((p) => !p), [])
-  const closeHUD = useCallback(() => setShowHUD(false), [])
-
-  useKeyboardShortcuts({
-    handleNext,
-    handlePrev,
-    toggleHUD,
-    closeHUD,
-    handleMove,
-    handleDelete,
-    handleUndo,
-    keybinds,
-    onUnboundKey: (key) => setBindingKey(key),
-    handleClearKeybinds: clearKeybinds,
-    handleSelectFolder: handleSelectFolder,
-    isDialogOpen: bindingKey !== null,
-    isHUDOpen: showHUD
-  })
-
-  const handleBind = useCallback(
-    (key: string, folder: string) => {
-      addKeybind(key, folder)
-      setBindingKey(null)
-    },
-    [addKeybind]
-  )
-
-  const handleCancelBind = useCallback(() => {
-    setBindingKey(null)
-  }, [])
+  if (!folderContent) {
+    return (
+      <div className="container">
+        <WelcomeScreen onSelect={handleSelectFolder} />
+      </div>
+    )
+  }
 
   return (
     <div className="container">
-      {folderContent === null ? (
-        <WelcomeScreen onSelect={handleSelectFolder} />
-      ) : (
-        <div className="main-layout">
-          <header>
-            <div className="folder-info">
-              <span className="label">Active Session</span>
-              <span className="path" title={folderContent.path}>
-                {folderContent.path}
-              </span>
-            </div>
-            <div className="header-right">
-              <div className="stats">
-                {Math.min(currentIndex + 1, folderContent.files.length)} /{' '}
-                {folderContent.files.length}
-              </div>
-              <div className="hud-hint" onClick={toggleHUD}>
-                Press <span className="key-cap">?</span> for help
-              </div>
-              <button className="secondary-button" onClick={handleSelectFolder}>
-                Change
-              </button>
-            </div>
-          </header>
+      <div className="main-layout">
+        <ViewHeader
+          folderPath={folderContent.path}
+          currentIndex={currentIndex}
+          totalFiles={folderContent.files.length}
+          onToggleHUD={toggleHUD}
+          onChangeFolder={handleSelectFolder}
+        />
 
-          {currentIndex >= folderContent.files.length ? (
-            <CompletionScreen
-              stats={sessionStats}
-              skippedCount={folderContent.files.length}
-              onSelectFolder={handleSelectFolder}
-              onLoopBack={handleLoopBack}
-            />
-          ) : (
-            <MainViewer
-              key={folderContent.files[currentIndex].path}
-              file={folderContent.files[currentIndex]}
-              onNext={handleNext}
-              onPrev={handlePrev}
-            />
-          )}
-        </div>
-      )}
+        {currentIndex >= folderContent.files.length ? (
+          <CompletionScreen
+            stats={sessionStats}
+            skippedCount={folderContent.files.length}
+            onSelectFolder={handleSelectFolder}
+            onLoopBack={handleLoopBack}
+          />
+        ) : (
+          <MainViewer
+            key={folderContent.files[currentIndex].path}
+            file={folderContent.files[currentIndex]}
+            onNext={handleNext}
+            onPrev={handlePrev}
+          />
+        )}
+      </div>
 
       <HUD isVisible={showHUD} onClose={closeHUD} keybinds={keybinds} />
-      <KeybindDialog bindKey={bindingKey} onBind={handleBind} onCancel={handleCancelBind} />
+      <KeybindDialog
+        bindKey={bindingKey}
+        onBind={handleBind}
+        onCancel={handleCancelBind}
+        initialFolderName={editingFolder}
+      />
     </div>
   )
 }

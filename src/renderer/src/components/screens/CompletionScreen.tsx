@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { SessionStats } from '../hooks/useMediaSession'
+import { SessionStats } from '../../hooks/useFolderSession'
 
 type CompletionScreenProps = {
   stats: SessionStats
@@ -14,7 +14,6 @@ const CompletionScreen = memo(
       <div className="completion-screen">
         <h2>All Done!</h2>
         <p>You have processed all files in this folder.</p>
-
         <div className="completion-stats">
           <div className="stat-group">
             <h3>Summary</h3>
@@ -30,7 +29,6 @@ const CompletionScreen = memo(
               </li>
             </ul>
           </div>
-
           {Object.keys(stats.foldersCount).length > 0 && (
             <div className="stat-group">
               <h3>Sorted by Folder</h3>
@@ -45,7 +43,6 @@ const CompletionScreen = memo(
             </div>
           )}
         </div>
-
         <div className="completion-actions">
           {skippedCount > 0 && (
             <button className="secondary-button" onClick={onLoopBack}>

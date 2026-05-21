@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from 'react'
 import { FolderContent, MediaFile } from '../../../shared/types'
 
-export const HISTORY_STACK_SIZE = 20
+export const HISTORY_STACK_SIZE = 200
 
 export type ActionHistoryItem = {
   type: 'move' | 'delete'
@@ -18,24 +18,20 @@ export type SessionStats = {
   foldersCount: Record<string, number>
 }
 
-export type MediaSession = {
+export type FolderSession = {
   folderContent: FolderContent | null
   currentIndex: number
-  history: ActionHistoryItem[]
   sessionStats: SessionStats
   handleNext: () => void
   handlePrev: () => void
-  handleSelectFolder: () => Promise<void>
+  handleSelectFolder: () => Promise<boolean>
   handleUndo: () => Promise<void>
   handleDelete: () => void
   handleMove: (targetFolder: string) => void
   handleLoopBack: () => void
-  keybinds: Record<string, string>
-  addKeybind: (key: string, folder: string) => void
-  clearKeybinds: () => void
 }
 
-export function useMediaSession(): MediaSession {
+export function useFolderSession(): FolderSession {
   const [folderContent, setFolderContent] = useState<FolderContent | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [history, setHistory] = useState<ActionHistoryItem[]>([])
@@ -44,7 +40,6 @@ export function useMediaSession(): MediaSession {
     movedCount: 0,
     foldersCount: {}
   })
-  const [keybinds, setKeybinds] = useState<Record<string, string>>({})
   const isMovingRef = useRef(false)
 
   const filesLength = folderContent?.files.length ?? 0
@@ -64,8 +59,9 @@ export function useMediaSession(): MediaSession {
       setCurrentIndex(0)
       setHistory([])
       setSessionStats({ deletedCount: 0, movedCount: 0, foldersCount: {} })
-      setKeybinds({})
+      return true
     }
+    return false
   }, [])
 
   const performFileAction = useCallback(
@@ -84,7 +80,6 @@ export function useMediaSession(): MediaSession {
         })
 
         const prevIndex = currentIndex
-
         const targetPath = await action()
 
         setHistory((prev) => {
@@ -194,18 +189,9 @@ export function useMediaSession(): MediaSession {
     setCurrentIndex(0)
   }, [])
 
-  const addKeybind = useCallback((key: string, folder: string) => {
-    setKeybinds((prev) => ({ ...prev, [key]: folder }))
-  }, [])
-
-  const clearKeybinds = useCallback(() => {
-    setKeybinds({})
-  }, [])
-
   return {
     folderContent,
     currentIndex,
-    history,
     sessionStats,
     handleNext,
     handlePrev,
@@ -213,9 +199,6 @@ export function useMediaSession(): MediaSession {
     handleUndo,
     handleDelete,
     handleMove,
-    handleLoopBack,
-    keybinds,
-    addKeybind,
-    clearKeybinds
+    handleLoopBack
   }
 }

@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { MediaFile } from '../../../shared/types'
+import { MediaFile } from '../../../../shared/types'
 
 interface MainViewerProps {
   file: MediaFile
@@ -25,7 +25,6 @@ const MainViewer = memo(function MainViewer({ file, onNext, onPrev }: MainViewer
           </div>
         ) : null}
       </div>
-
       <div className="viewer-footer">
         <button onClick={onPrev} className="control-btn" title="Previous (Left Arrow)">
           <span>←</span> Previous
