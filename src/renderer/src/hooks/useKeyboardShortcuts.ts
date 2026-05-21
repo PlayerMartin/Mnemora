@@ -1,99 +1,59 @@
 import { useEffect } from 'react'
 import { useLatest } from './useLatest'
 
-export type ShortcutHandlers = {
-  handleNext: () => void
-  handlePrev: () => void
-  toggleHUD: () => void
-  closeHUD: () => void
-  handleMove: (folder: string) => void
-  handleDelete: () => void
-  handleUndo: () => void
-  keybinds: Record<string, string>
-  onUnboundKey: (key: string) => void
-  handleClearKeybinds: () => void
-  handleSelectFolder: () => void
-  isDialogOpen: boolean
-  isHUDOpen: boolean
+export type Keymap = Record<string, (e: KeyboardEvent) => void>
+
+type Options = {
+  enabled?: boolean
+  onUnmatchedKey?: (key: string) => void
 }
 
-export function useKeyboardShortcuts(handlers: ShortcutHandlers): void {
-  const handlersRef = useLatest(handlers)
+function getKeymapKey(e: KeyboardEvent): string | null {
+  if (e.key === '/' && e.shiftKey) return '?'
+
+  if (e.key.length === 1) {
+    const char = e.key.toLowerCase()
+    if (e.ctrlKey) {
+      return e.shiftKey ? `Ctrl+Shift+${char}` : `Ctrl+${char}`
+    }
+    if (e.altKey || e.metaKey) return null
+    return char
+  }
+
+  if (e.ctrlKey || e.altKey || e.metaKey || e.shiftKey) return null
+
+  const SPECIAL = new Set(['Escape', 'ArrowRight', 'ArrowLeft', 'Delete'])
+  if (SPECIAL.has(e.key)) return e.key
+
+  return null
+}
+
+export function useKeyboardShortcuts(
+  keymap: Keymap,
+  { enabled = true, onUnmatchedKey }: Options = {}
+): void {
+  const keymapRef = useLatest(keymap)
+  const onUnmatchedKeyRef = useLatest(onUnmatchedKey)
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent): void => {
-      const {
-        handleNext,
-        handlePrev,
-        toggleHUD,
-        closeHUD,
-        handleMove,
-        handleDelete,
-        handleUndo,
-        keybinds,
-        onUnboundKey,
-        handleClearKeybinds,
-        handleSelectFolder,
-        isDialogOpen,
-        isHUDOpen
-      } = handlersRef.current
+    if (!enabled) return
 
-      if (isDialogOpen) return
+    const handler = (e: KeyboardEvent): void => {
+      const key = getKeymapKey(e)
+      if (!key) return
 
-      const key = e.key.toLowerCase()
-
-      if (key === 'escape') {
-        if (isHUDOpen) closeHUD()
+      const fn = keymapRef.current[key]
+      if (fn) {
+        fn(e)
         return
       }
 
-      if (key === '?' || (key === '/' && e.shiftKey)) {
-        toggleHUD()
-        return
+      if (onUnmatchedKeyRef.current && !e.ctrlKey && !e.altKey && !e.metaKey && key.length === 1) {
+        onUnmatchedKeyRef.current(key)
       }
-
-      switch (key) {
-        case 'arrowright':
-          e.preventDefault()
-          if (!isHUDOpen) handleNext()
-          return
-        case 'arrowleft':
-          e.preventDefault()
-          if (!isHUDOpen) handlePrev()
-          return
-        case 'delete':
-          if (!isHUDOpen) handleDelete()
-          return
-        case 'z':
-          if (e.ctrlKey && !isHUDOpen) handleUndo()
-          return
-        case 'o':
-          if (e.ctrlKey) {
-            handleSelectFolder()
-            return
-          }
-          break
-        case 'c':
-          if (e.ctrlKey && e.shiftKey) {
-            handleClearKeybinds()
-            return
-          }
-          break
-      }
-
-      // Ignore modifiers and control keys for custom keybinds
-      if (e.ctrlKey || e.altKey || e.metaKey || key.length > 1) return
-
-      if (keybinds[key]) {
-        if (!isHUDOpen) {
-          handleMove(keybinds[key])
-        }
-        return
-      }
-      onUnboundKey(key)
     }
 
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [handlersRef])
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [enabled, keymapRef, onUnmatchedKeyRef])
 }
