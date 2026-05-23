@@ -54,7 +54,7 @@ export function useFolderSession(): FolderSession {
 
   const handleSelectFolder = useCallback(async () => {
     const result = await window.api.selectFolder()
-    if (result && result.files.length > 0) {
+    if (result) {
       setFolderContent(result)
       setCurrentIndex(0)
       setHistory([])
