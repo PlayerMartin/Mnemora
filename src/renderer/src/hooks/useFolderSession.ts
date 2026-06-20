@@ -25,6 +25,7 @@ export type FolderSession = {
   handleNext: () => void
   handlePrev: () => void
   handleSelectFolder: () => Promise<boolean>
+  restoreFolder: (path: string, index: number) => Promise<boolean>
   handleUndo: () => Promise<void>
   handleDelete: () => void
   handleMove: (targetFolder: string) => void
@@ -57,6 +58,18 @@ export function useFolderSession(): FolderSession {
     if (result) {
       setFolderContent(result)
       setCurrentIndex(0)
+      setHistory([])
+      setSessionStats({ deletedCount: 0, movedCount: 0, foldersCount: {} })
+      return true
+    }
+    return false
+  }, [])
+
+  const restoreFolder = useCallback(async (path: string, index: number) => {
+    const result = await window.api.loadFolder(path)
+    if (result) {
+      setFolderContent(result)
+      setCurrentIndex(Math.min(index, result.files.length))
       setHistory([])
       setSessionStats({ deletedCount: 0, movedCount: 0, foldersCount: {} })
       return true
@@ -196,6 +209,7 @@ export function useFolderSession(): FolderSession {
     handleNext,
     handlePrev,
     handleSelectFolder,
+    restoreFolder,
     handleUndo,
     handleDelete,
     handleMove,

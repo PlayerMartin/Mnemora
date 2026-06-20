@@ -4,6 +4,8 @@ import { FolderContent, PersistedState } from '../shared/types'
 
 const api = {
   selectFolder: (): Promise<FolderContent | null> => ipcRenderer.invoke('media:select-folder'),
+  loadFolder: (path: string): Promise<FolderContent | null> =>
+    ipcRenderer.invoke('media:load-folder', path),
   moveFile: (filePath: string, targetFolderName: string): Promise<string> =>
     ipcRenderer.invoke('media:move-file', filePath, targetFolderName),
   deleteFile: (filePath: string): Promise<string> =>

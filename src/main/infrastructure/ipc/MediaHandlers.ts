@@ -1,5 +1,6 @@
 import { ipcMain } from 'electron'
 import { SelectFolderUseCase } from '../../use-cases/SelectFolderUseCase'
+import { LoadFolderUseCase } from '../../use-cases/LoadFolderUseCase'
 import { MoveFileUseCase } from '../../use-cases/MoveFileUseCase'
 import { DeleteFileUseCase } from '../../use-cases/DeleteFileUseCase'
 import { UndoActionUseCase } from '../../use-cases/UndoActionUseCase'
@@ -10,12 +11,22 @@ export function registerMediaHandlers(): void {
   const mediaRepository = new ElectronMediaRepository()
   const dialogGateway = new ElectronDialogGateway()
   const selectFolderUseCase = new SelectFolderUseCase(mediaRepository, dialogGateway)
+  const loadFolderUseCase = new LoadFolderUseCase(mediaRepository)
   const moveFileUseCase = new MoveFileUseCase(mediaRepository)
   const deleteFileUseCase = new DeleteFileUseCase(mediaRepository)
   const undoActionUseCase = new UndoActionUseCase(mediaRepository)
 
   ipcMain.handle('media:select-folder', async () => {
     return await selectFolderUseCase.execute()
+  })
+
+  ipcMain.handle('media:load-folder', async (_event, path: string) => {
+    try {
+      return await loadFolderUseCase.execute(path)
+    } catch (error) {
+      console.error('IPC Error in media:load-folder:', error)
+      throw error
+    }
   })
 
   ipcMain.handle('media:move-file', async (_event, filePath: string, targetFolderName: string) => {

@@ -5,6 +5,7 @@ export type Keybinds = {
   addKeybind: (key: string, folder: string) => void
   removeKeybind: (key: string) => void
   clearKeybinds: () => void
+  setAllKeybinds: (record: Record<string, string>) => void
 }
 
 export function useKeybinds(): Keybinds {
@@ -26,5 +27,9 @@ export function useKeybinds(): Keybinds {
     setKeybinds({})
   }, [])
 
-  return { keybinds, addKeybind, removeKeybind, clearKeybinds }
+  const setAllKeybinds = useCallback((record: Record<string, string>) => {
+    setKeybinds(record)
+  }, [])
+
+  return { keybinds, addKeybind, removeKeybind, clearKeybinds, setAllKeybinds }
 }

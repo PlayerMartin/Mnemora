@@ -15,15 +15,22 @@ const RANDOM_WELCOME_MESSAGE = MESSAGES[Math.floor(Math.random() * MESSAGES.leng
 
 interface WelcomeScreenProps {
   onSelect: () => void
+  resumeFolderPath?: string | null
+  onResume?: () => void
 }
 
-const WelcomeScreen = memo(({ onSelect }: WelcomeScreenProps) => {
+const WelcomeScreen = memo(({ onSelect, resumeFolderPath, onResume }: WelcomeScreenProps) => {
   return (
     <div className="welcome-screen">
       <h1>Mnemora</h1>
       <p>The efficient way to organize your media galleries with a single keypress.</p>
       <em style={{ opacity: 0.5, fontSize: '0.85em' }}>{RANDOM_WELCOME_MESSAGE}</em>
-      <button className="primary-button" onClick={onSelect}>
+      {resumeFolderPath && onResume && (
+        <button className="primary-button" onClick={onResume} autoFocus>
+          Resume: {resumeFolderPath}
+        </button>
+      )}
+      <button className="primary-button" onClick={onSelect} autoFocus={!resumeFolderPath}>
         Select Source Folder
       </button>
     </div>

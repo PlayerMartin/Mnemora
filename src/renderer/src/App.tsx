@@ -22,14 +22,20 @@ function App(): React.JSX.Element {
     handleNext,
     handlePrev,
     handleSelectFolder,
+    handleResume,
     handleLoopBack,
-    keybinds
+    keybinds,
+    resumableSession
   } = useMediaWorkflow()
 
   if (!folderContent) {
     return (
       <div className="container">
-        <WelcomeScreen onSelect={handleSelectFolder} />
+        <WelcomeScreen
+          onSelect={handleSelectFolder}
+          resumeFolderPath={resumableSession?.folderPath}
+          onResume={handleResume}
+        />
       </div>
     )
   }

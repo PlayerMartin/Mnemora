@@ -1,9 +1,11 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { SessionStats, useFolderSession } from './useFolderSession'
 import { useKeybinds } from './useKeybinds'
 import { useKeyboardShortcuts, Keymap } from './useKeyboardShortcuts'
 import { FolderContent } from 'src/shared/types'
 import { STATIC_KEYBINDS } from '../config/keybinds'
+
+export type ResumableSession = { folderPath: string; currentIndex: number } | null
 
 export type MediaWorkflow = {
   showHUD: boolean
@@ -19,25 +21,72 @@ export type MediaWorkflow = {
   handleNext: () => void
   handlePrev: () => void
   handleSelectFolder: () => Promise<void>
+  handleResume: () => Promise<void>
   handleLoopBack: () => void
   keybinds: Record<string, string>
+  resumableSession: ResumableSession
 }
 
 export function useMediaWorkflow(): MediaWorkflow {
   const [showHUD, setShowHUD] = useState(false)
   const [bindingKey, setBindingKey] = useState<string | null>(null)
   const [editingFolder, setEditingFolder] = useState<string | null>(null)
+  const [resumableSession, setResumableSession] = useState<ResumableSession>(null)
+  const hydratedRef = useRef(false)
 
   const toggleHUD = useCallback(() => setShowHUD((p) => !p), [])
   const closeHUD = useCallback(() => setShowHUD(false), [])
 
   const folderSession = useFolderSession()
-  const { keybinds, addKeybind, removeKeybind, clearKeybinds } = useKeybinds()
+  const { keybinds, addKeybind, removeKeybind, clearKeybinds, setAllKeybinds } = useKeybinds()
+
+  // Hydrate from persisted store on mount
+  useEffect(() => {
+    window.api.store.getAll().then((s) => {
+      setAllKeybinds(s.keybinds)
+      if (s.session.folderPath) {
+        setResumableSession({
+          folderPath: s.session.folderPath,
+          currentIndex: s.session.currentIndex
+        })
+      }
+      hydratedRef.current = true
+    })
+  }, [setAllKeybinds])
+
+  // Persist keybinds on change
+  useEffect(() => {
+    if (!hydratedRef.current) return
+    window.api.store.set('keybinds', keybinds)
+  }, [keybinds])
+
+  // Persist session on change (debounced)
+  useEffect(() => {
+    if (!hydratedRef.current) return
+    const timer = setTimeout(() => {
+      window.api.store.set('session', {
+        folderPath: folderSession.folderContent?.path ?? null,
+        currentIndex: folderSession.currentIndex
+      })
+    }, 250)
+    return () => clearTimeout(timer)
+  }, [folderSession.folderContent?.path, folderSession.currentIndex])
 
   const handleSelectFolder = useCallback(async () => {
-    const selected = await folderSession.handleSelectFolder()
-    if (selected) clearKeybinds()
-  }, [folderSession, clearKeybinds])
+    await folderSession.handleSelectFolder()
+  }, [folderSession])
+
+  const handleResume = useCallback(async () => {
+    if (!resumableSession) return
+    const ok = await folderSession.restoreFolder(
+      resumableSession.folderPath,
+      resumableSession.currentIndex
+    )
+    if (!ok) {
+      setResumableSession(null)
+      window.api.store.set('session', { folderPath: null, currentIndex: 0 })
+    }
+  }, [resumableSession, folderSession])
 
   const keymap: Keymap = useMemo(
     () => ({
@@ -118,14 +167,16 @@ export function useMediaWorkflow(): MediaWorkflow {
     handleNext: folderSession.handleNext,
     handlePrev: folderSession.handlePrev,
     handleSelectFolder,
+    handleResume,
     handleLoopBack: folderSession.handleLoopBack,
-    keybinds
+    keybinds,
+    resumableSession
   }
 }
 
 function devWarnIfStaticKeybindUndefined(keymap: Keymap): void {
   if (import.meta.env.DEV) {
-    const definedKeys = STATIC_KEYBINDS.flatMap(d => d.keys).filter(Boolean)
+    const definedKeys = STATIC_KEYBINDS.flatMap((d) => d.keys).filter(Boolean)
     for (const key of definedKeys) {
       if (!(key in keymap)) {
         console.warn(`Missing handler for static keybind: ${key}`)
