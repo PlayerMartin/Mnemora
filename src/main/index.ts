@@ -6,6 +6,7 @@ import { createReadStream } from 'fs'
 import { Readable } from 'stream'
 import mime from 'mime-types'
 import { registerMediaHandlers } from './infrastructure/ipc/MediaHandlers'
+import { registerStoreHandlers } from './infrastructure/ipc/StoreHandlers'
 import { resolveByteRange } from './infrastructure/protocol/resolveByteRange'
 
 protocol.registerSchemesAsPrivileged([
@@ -87,6 +88,7 @@ app.whenReady().then(() => {
   })
 
   registerMediaHandlers()
+  registerStoreHandlers()
 
   createWindow()
 

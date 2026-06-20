@@ -13,3 +13,9 @@ export interface FolderContent {
   path: string
   files: MediaFile[]
 }
+
+export interface PersistedState {
+  session: { folderPath: string | null; currentIndex: number }
+  keybinds: Record<string, string>
+  keybindTemplates: Record<string, Record<string, string>>
+}
