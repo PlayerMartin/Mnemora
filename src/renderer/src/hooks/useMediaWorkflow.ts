@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { SessionStats, useFolderSession } from './useFolderSession'
 import { useKeybinds } from './useKeybinds'
+import { useKeybindTemplates } from './useKeybindTemplates'
 import { useKeyboardShortcuts, Keymap } from './useKeyboardShortcuts'
 import { FolderContent } from 'src/shared/types'
 import { STATIC_KEYBINDS } from '../config/keybinds'
@@ -25,6 +26,13 @@ export type MediaWorkflow = {
   handleLoopBack: () => void
   keybinds: Record<string, string>
   resumableSession: ResumableSession
+  showTemplates: boolean
+  openTemplates: () => void
+  closeTemplates: () => void
+  templates: Record<string, Record<string, string>>
+  handleSaveTemplate: (name: string) => void
+  handleLoadTemplate: (name: string) => void
+  handleDeleteTemplate: (name: string) => void
 }
 
 export function useMediaWorkflow(): MediaWorkflow {
@@ -32,18 +40,23 @@ export function useMediaWorkflow(): MediaWorkflow {
   const [bindingKey, setBindingKey] = useState<string | null>(null)
   const [editingFolder, setEditingFolder] = useState<string | null>(null)
   const [resumableSession, setResumableSession] = useState<ResumableSession>(null)
+  const [showTemplates, setShowTemplates] = useState(false)
   const hydratedRef = useRef(false)
 
   const toggleHUD = useCallback(() => setShowHUD((p) => !p), [])
   const closeHUD = useCallback(() => setShowHUD(false), [])
+  const openTemplates = useCallback(() => setShowTemplates(true), [])
+  const closeTemplates = useCallback(() => setShowTemplates(false), [])
 
   const folderSession = useFolderSession()
   const { keybinds, addKeybind, removeKeybind, clearKeybinds, setAllKeybinds } = useKeybinds()
+  const { templates, setAllTemplates, saveTemplate, deleteTemplate } = useKeybindTemplates()
 
   // Hydrate from persisted store on mount
   useEffect(() => {
     window.api.store.getAll().then((s) => {
       setAllKeybinds(s.keybinds)
+      setAllTemplates(s.keybindTemplates)
       if (s.session.folderPath) {
         setResumableSession({
           folderPath: s.session.folderPath,
@@ -52,13 +65,19 @@ export function useMediaWorkflow(): MediaWorkflow {
       }
       hydratedRef.current = true
     })
-  }, [setAllKeybinds])
+  }, [setAllKeybinds, setAllTemplates])
 
   // Persist keybinds on change
   useEffect(() => {
     if (!hydratedRef.current) return
     window.api.store.set('keybinds', keybinds)
   }, [keybinds])
+
+  // Persist templates on change
+  useEffect(() => {
+    if (!hydratedRef.current) return
+    window.api.store.set('keybindTemplates', templates)
+  }, [templates])
 
   // Persist session on change (debounced)
   useEffect(() => {
@@ -87,6 +106,28 @@ export function useMediaWorkflow(): MediaWorkflow {
       window.api.store.set('session', { folderPath: null, currentIndex: 0 })
     }
   }, [resumableSession, folderSession])
+
+  const handleSaveTemplate = useCallback(
+    (name: string) => {
+      saveTemplate(name, keybinds)
+    },
+    [saveTemplate, keybinds]
+  )
+
+  const handleLoadTemplate = useCallback(
+    (name: string) => {
+      const tpl = templates[name]
+      if (tpl) setAllKeybinds({ ...keybinds, ...tpl })
+    },
+    [templates, keybinds, setAllKeybinds]
+  )
+
+  const handleDeleteTemplate = useCallback(
+    (name: string) => {
+      deleteTemplate(name)
+    },
+    [deleteTemplate]
+  )
 
   const keymap: Keymap = useMemo(
     () => ({
@@ -127,13 +168,23 @@ export function useMediaWorkflow(): MediaWorkflow {
       ),
       ...Object.fromEntries(
         Object.entries(keybinds).map(([k]) => [`Ctrl+Shift+${k}`, () => removeKeybind(k)])
-      )
+      ),
+      'Ctrl+t': openTemplates
     }),
-    [showHUD, keybinds, folderSession, toggleHUD, closeHUD, clearKeybinds, removeKeybind]
+    [
+      showHUD,
+      keybinds,
+      folderSession,
+      toggleHUD,
+      closeHUD,
+      clearKeybinds,
+      removeKeybind,
+      openTemplates
+    ]
   )
 
   useKeyboardShortcuts(keymap, {
-    enabled: !bindingKey,
+    enabled: !bindingKey && !showTemplates,
     onUnmatchedKey: setBindingKey
   })
 
@@ -170,7 +221,14 @@ export function useMediaWorkflow(): MediaWorkflow {
     handleResume,
     handleLoopBack: folderSession.handleLoopBack,
     keybinds,
-    resumableSession
+    resumableSession,
+    showTemplates,
+    openTemplates,
+    closeTemplates,
+    templates,
+    handleSaveTemplate,
+    handleLoadTemplate,
+    handleDeleteTemplate
   }
 }
 

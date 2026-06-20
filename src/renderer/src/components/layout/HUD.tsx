@@ -5,9 +5,10 @@ interface HUDProps {
   isVisible: boolean
   onClose: () => void
   keybinds: Record<string, string>
+  onOpenTemplates: () => void
 }
 
-const HUD = memo(({ isVisible, onClose, keybinds }: HUDProps) => {
+const HUD = memo(({ isVisible, onClose, keybinds, onOpenTemplates }: HUDProps) => {
   return (
     <div className={`hud-overlay ${isVisible ? 'visible' : ''}`} onClick={onClose}>
       <div className="hud-content" onClick={(e) => e.stopPropagation()}>
@@ -34,7 +35,16 @@ const HUD = memo(({ isVisible, onClose, keybinds }: HUDProps) => {
             </div>
           ))}
           <div className="hud-section" style={{ gridColumn: '1 / -1' }}>
-            <h3>Custom Keybinds</h3>
+            <h3>
+              Custom Keybinds{' '}
+              <button
+                className="secondary-button"
+                style={{ fontSize: '0.75em', padding: '0.25rem 0.5rem', marginLeft: '0.5rem' }}
+                onClick={onOpenTemplates}
+              >
+                Manage Templates
+              </button>
+            </h3>
             <div
               className="keybind-list"
               style={

@@ -5,6 +5,7 @@ import ViewHeader from './components/layout/ViewHeader'
 import MainViewer from './components/media/MainViewer'
 import HUD from './components/layout/HUD'
 import KeybindDialog from './components/dialogs/KeybindDialog'
+import TemplateManagerDialog from './components/dialogs/TemplateManagerDialog'
 import './assets/main.css'
 
 function App(): React.JSX.Element {
@@ -25,7 +26,14 @@ function App(): React.JSX.Element {
     handleResume,
     handleLoopBack,
     keybinds,
-    resumableSession
+    resumableSession,
+    showTemplates,
+    openTemplates,
+    closeTemplates,
+    templates,
+    handleSaveTemplate,
+    handleLoadTemplate,
+    handleDeleteTemplate
   } = useMediaWorkflow()
 
   if (!folderContent) {
@@ -68,12 +76,26 @@ function App(): React.JSX.Element {
         )}
       </div>
 
-      <HUD isVisible={showHUD} onClose={closeHUD} keybinds={keybinds} />
+      <HUD
+        isVisible={showHUD}
+        onClose={closeHUD}
+        keybinds={keybinds}
+        onOpenTemplates={openTemplates}
+      />
       <KeybindDialog
         bindKey={bindingKey}
         onBind={handleBind}
         onCancel={handleCancelBind}
         initialFolderName={editingFolder}
+      />
+      <TemplateManagerDialog
+        isOpen={showTemplates}
+        templates={templates}
+        currentKeybinds={keybinds}
+        onSave={handleSaveTemplate}
+        onLoad={handleLoadTemplate}
+        onDelete={handleDeleteTemplate}
+        onClose={closeTemplates}
       />
     </div>
   )

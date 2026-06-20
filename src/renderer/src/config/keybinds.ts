@@ -75,6 +75,15 @@ export const STATIC_KEYBINDS: StaticKeybindDef[] = [
     blockedByHUD: false
   },
   {
+    id: 'templates',
+    section: 'actions',
+    description: 'Manage templates',
+    display: ['Ctrl', 'T'],
+    keys: ['Ctrl+t'],
+    preventDefault: false,
+    blockedByHUD: false
+  },
+  {
     id: 'edit-keybind',
     section: 'actions',
     description: 'Edit a custom keybind',
