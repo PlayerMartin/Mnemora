@@ -10,6 +10,8 @@ const api = {
     ipcRenderer.invoke('media:move-file', filePath, targetFolderName),
   deleteFile: (filePath: string): Promise<string> =>
     ipcRenderer.invoke('media:delete-file', filePath),
+  renameFile: (filePath: string, newBaseName: string): Promise<string> =>
+    ipcRenderer.invoke('media:rename-file', filePath, newBaseName),
   undoAction: (originalPath: string, currentPath: string): Promise<void> =>
     ipcRenderer.invoke('media:undo-action', originalPath, currentPath),
   store: {

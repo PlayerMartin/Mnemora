@@ -6,6 +6,7 @@ import MainViewer from './components/media/MainViewer'
 import HUD from './components/layout/HUD'
 import KeybindDialog from './components/dialogs/KeybindDialog'
 import TemplateManagerDialog from './components/dialogs/TemplateManagerDialog'
+import RenameDialog from './components/dialogs/RenameDialog'
 import './assets/main.css'
 
 function App(): React.JSX.Element {
@@ -38,7 +39,11 @@ function App(): React.JSX.Element {
     templates,
     handleSaveTemplate,
     handleLoadTemplate,
-    handleDeleteTemplate
+    handleDeleteTemplate,
+    showRename,
+    openRename,
+    closeRename,
+    handleRename
   } = useMediaWorkflow()
 
   if (!folderContent) {
@@ -77,6 +82,7 @@ function App(): React.JSX.Element {
             file={folderContent.files[currentIndex]}
             onNext={handleNext}
             onPrev={handlePrev}
+            onRename={openRename}
           />
         )}
       </div>
@@ -98,6 +104,23 @@ function App(): React.JSX.Element {
         isCapturing={isCapturingKey}
         onCaptureKey={handleKeyCaptured}
       />
+      {currentIndex < folderContent.files.length &&
+        (() => {
+          const file = folderContent.files[currentIndex]
+          const dotIdx = file.name.lastIndexOf('.')
+          const baseName = dotIdx > 0 ? file.name.slice(0, dotIdx) : file.name
+          const ext = dotIdx > 0 ? file.name.slice(dotIdx) : ''
+          return (
+            <RenameDialog
+              isOpen={showRename}
+              currentName={baseName}
+              extension={ext}
+              ctimeMs={file.stats.ctime}
+              onRename={handleRename}
+              onClose={closeRename}
+            />
+          )
+        })()}
       <TemplateManagerDialog
         isOpen={showTemplates}
         templates={templates}

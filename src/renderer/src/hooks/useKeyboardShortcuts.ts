@@ -22,7 +22,7 @@ function getKeymapKey(e: KeyboardEvent): string | null {
 
   if (e.ctrlKey || e.altKey || e.metaKey || e.shiftKey) return null
 
-  const SPECIAL = new Set(['Escape', 'ArrowRight', 'ArrowLeft', 'Delete'])
+  const SPECIAL = new Set(['Escape', 'ArrowRight', 'ArrowLeft', 'Delete', 'F2'])
   if (SPECIAL.has(e.key)) return e.key
 
   return null

@@ -60,16 +60,18 @@ const HUD = memo(
               <div className="hud-section" key={section}>
                 <h3>{SECTION_LABELS[section]}</h3>
                 <div className="keybind-list">
-                  {STATIC_KEYBINDS.filter((k) => k.section === section).map((k) => (
-                    <div className="keybind-item" key={k.id}>
-                      {k.display.map((cap, i) => (
-                        <span className="key-cap" key={i}>
-                          {cap}
-                        </span>
-                      ))}
-                      <span className="key-action">{k.description}</span>
-                    </div>
-                  ))}
+                  {STATIC_KEYBINDS.filter((k) => k.section === section)
+                    .sort((a, b) => a.order - b.order)
+                    .map((k) => (
+                      <div className="keybind-item" key={k.id}>
+                        {k.display.map((cap, i) => (
+                          <span className="key-cap" key={i}>
+                            {cap}
+                          </span>
+                        ))}
+                        <span className="key-action">{k.description}</span>
+                      </div>
+                    ))}
                 </div>
               </div>
             ))}

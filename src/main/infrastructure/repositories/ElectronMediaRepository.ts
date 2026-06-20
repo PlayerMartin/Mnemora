@@ -1,4 +1,4 @@
-import { readdir, stat, mkdir, rename } from 'fs/promises'
+import { readdir, stat, mkdir, rename, access } from 'fs/promises'
 import { join, extname, dirname, basename } from 'path'
 import { MediaRepository } from '../../domain/repositories/MediaRepository'
 import { MediaFile } from '../../../shared/types'
@@ -25,6 +25,23 @@ export class ElectronMediaRepository implements MediaRepository {
 
   async undoAction(originalPath: string, currentPath: string): Promise<void> {
     await rename(currentPath, originalPath)
+  }
+
+  async renameFile(filePath: string, newBaseName: string): Promise<string> {
+    const dir = dirname(filePath)
+    const ext = extname(filePath)
+    const targetPath = join(dir, newBaseName + ext)
+    await rename(filePath, targetPath)
+    return targetPath
+  }
+
+  async fileExists(path: string): Promise<boolean> {
+    try {
+      await access(path)
+      return true
+    } catch {
+      return false
+    }
   }
 
   async getMediaFiles(folderPath: string): Promise<MediaFile[]> {

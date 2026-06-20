@@ -4,7 +4,7 @@ import { FolderContent, MediaFile } from '../../../shared/types'
 export const HISTORY_STACK_SIZE = 200
 
 export type ActionHistoryItem = {
-  type: 'move' | 'delete'
+  type: 'move' | 'delete' | 'rename'
   originalPath: string
   currentPath: string
   fileIndex: number
@@ -29,6 +29,7 @@ export type FolderSession = {
   handleUndo: () => Promise<void>
   handleDelete: () => void
   handleMove: (targetFolder: string) => void
+  handleRename: (newBaseName: string) => Promise<void>
   handleLoopBack: () => void
 }
 
@@ -146,30 +147,41 @@ export function useFolderSession(): FolderSession {
     try {
       await window.api.undoAction(lastAction.originalPath, lastAction.currentPath)
 
-      setFolderContent((prev) => {
-        if (!prev) return null
-        const newFiles = [...prev.files]
-        newFiles.splice(lastAction.fileIndex, 0, lastAction.file)
-        return { ...prev, files: newFiles }
-      })
-      setCurrentIndex(lastAction.fileIndex)
-      setHistory((prev) => prev.slice(0, -1))
+      if (lastAction.type === 'rename') {
+        setFolderContent((prev) => {
+          if (!prev) return null
+          const newFiles = [...prev.files]
+          newFiles[lastAction.fileIndex] = lastAction.file
+          return { ...prev, files: newFiles }
+        })
+        setCurrentIndex(lastAction.fileIndex)
+        setHistory((prev) => prev.slice(0, -1))
+      } else {
+        setFolderContent((prev) => {
+          if (!prev) return null
+          const newFiles = [...prev.files]
+          newFiles.splice(lastAction.fileIndex, 0, lastAction.file)
+          return { ...prev, files: newFiles }
+        })
+        setCurrentIndex(lastAction.fileIndex)
+        setHistory((prev) => prev.slice(0, -1))
 
-      setSessionStats((prev) => {
-        const newStats = { ...prev, foldersCount: { ...prev.foldersCount } }
-        if (lastAction.type === 'delete') {
-          newStats.deletedCount = Math.max(0, newStats.deletedCount - 1)
-        } else {
-          newStats.movedCount = Math.max(0, newStats.movedCount - 1)
-          if (lastAction.targetFolder && newStats.foldersCount[lastAction.targetFolder]) {
-            newStats.foldersCount[lastAction.targetFolder] -= 1
-            if (newStats.foldersCount[lastAction.targetFolder] <= 0) {
-              delete newStats.foldersCount[lastAction.targetFolder]
+        setSessionStats((prev) => {
+          const newStats = { ...prev, foldersCount: { ...prev.foldersCount } }
+          if (lastAction.type === 'delete') {
+            newStats.deletedCount = Math.max(0, newStats.deletedCount - 1)
+          } else {
+            newStats.movedCount = Math.max(0, newStats.movedCount - 1)
+            if (lastAction.targetFolder && newStats.foldersCount[lastAction.targetFolder]) {
+              newStats.foldersCount[lastAction.targetFolder] -= 1
+              if (newStats.foldersCount[lastAction.targetFolder] <= 0) {
+                delete newStats.foldersCount[lastAction.targetFolder]
+              }
             }
           }
-        }
-        return newStats
-      })
+          return newStats
+        })
+      }
     } catch (error) {
       console.error('Undo failed:', error)
     } finally {
@@ -198,6 +210,51 @@ export function useFolderSession(): FolderSession {
     [folderContent, currentIndex, performFileAction]
   )
 
+  const handleRename = useCallback(
+    async (newBaseName: string) => {
+      if (!folderContent || isMovingRef.current) return
+      const currentFile = folderContent.files[currentIndex]
+      if (!currentFile) return
+
+      isMovingRef.current = true
+
+      try {
+        const newPath = await window.api.renameFile(currentFile.path, newBaseName)
+        const newName = newPath.split(/[\\/]/).pop()!
+
+        setFolderContent((prev) => {
+          if (!prev) return null
+          const newFiles = [...prev.files]
+          newFiles[currentIndex] = { ...currentFile, name: newName, path: newPath, id: newName }
+          return { ...prev, files: newFiles }
+        })
+
+        setHistory((prev) => {
+          const newHistory = [
+            ...prev,
+            {
+              type: 'rename' as const,
+              originalPath: currentFile.path,
+              currentPath: newPath,
+              fileIndex: currentIndex,
+              file: currentFile
+            }
+          ]
+          return newHistory.length > HISTORY_STACK_SIZE
+            ? newHistory.slice(newHistory.length - HISTORY_STACK_SIZE)
+            : newHistory
+        })
+      } catch (error) {
+        console.error('Rename failed:', error)
+      } finally {
+        setTimeout(() => {
+          isMovingRef.current = false
+        }, 100)
+      }
+    },
+    [folderContent, currentIndex]
+  )
+
   const handleLoopBack = useCallback(() => {
     setCurrentIndex(0)
   }, [])
@@ -213,6 +270,7 @@ export function useFolderSession(): FolderSession {
     handleUndo,
     handleDelete,
     handleMove,
+    handleRename,
     handleLoopBack
   }
 }

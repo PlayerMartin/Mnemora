@@ -5,4 +5,6 @@ export interface MediaRepository {
   moveFile(filePath: string, targetPath: string): Promise<void>
   deleteFile(filePath: string): Promise<string>
   undoAction(originalPath: string, currentPath: string): Promise<void>
+  renameFile(filePath: string, newBaseName: string): Promise<string>
+  fileExists(path: string): Promise<boolean>
 }

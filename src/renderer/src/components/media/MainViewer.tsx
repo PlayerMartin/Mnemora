@@ -5,9 +5,10 @@ interface MainViewerProps {
   file: MediaFile
   onNext: () => void
   onPrev: () => void
+  onRename?: () => void
 }
 
-const MainViewer = memo(function MainViewer({ file, onNext, onPrev }: MainViewerProps) {
+const MainViewer = memo(function MainViewer({ file, onNext, onPrev, onRename }: MainViewerProps) {
   const mediaUrl = `media:///${file.path.replace(/\\/g, '/')}`
 
   return (
@@ -29,9 +30,14 @@ const MainViewer = memo(function MainViewer({ file, onNext, onPrev }: MainViewer
         <button onClick={onPrev} className="control-btn" title="Previous (Left Arrow)">
           <span>←</span> Previous
         </button>
-        <div className="file-name" title={file.path}>
+        <button
+          className="file-name"
+          title="Rename (F2)"
+          onClick={onRename}
+          style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'inherit' }}
+        >
           {file.name}
-        </div>
+        </button>
         <button onClick={onNext} className="control-btn" title="Next (Right Arrow)">
           Next <span>→</span>
         </button>

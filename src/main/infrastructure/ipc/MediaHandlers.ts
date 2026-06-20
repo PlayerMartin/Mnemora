@@ -4,6 +4,7 @@ import { LoadFolderUseCase } from '../../use-cases/LoadFolderUseCase'
 import { MoveFileUseCase } from '../../use-cases/MoveFileUseCase'
 import { DeleteFileUseCase } from '../../use-cases/DeleteFileUseCase'
 import { UndoActionUseCase } from '../../use-cases/UndoActionUseCase'
+import { RenameFileUseCase } from '../../use-cases/RenameFileUseCase'
 import { ElectronMediaRepository } from '../repositories/ElectronMediaRepository'
 import { ElectronDialogGateway } from '../gateways/ElectronDialogGateway'
 
@@ -15,6 +16,7 @@ export function registerMediaHandlers(): void {
   const moveFileUseCase = new MoveFileUseCase(mediaRepository)
   const deleteFileUseCase = new DeleteFileUseCase(mediaRepository)
   const undoActionUseCase = new UndoActionUseCase(mediaRepository)
+  const renameFileUseCase = new RenameFileUseCase(mediaRepository)
 
   ipcMain.handle('media:select-folder', async () => {
     return await selectFolderUseCase.execute()
@@ -43,6 +45,15 @@ export function registerMediaHandlers(): void {
       return await deleteFileUseCase.execute(filePath)
     } catch (error) {
       console.error('IPC Error in media:delete-file:', error)
+      throw error
+    }
+  })
+
+  ipcMain.handle('media:rename-file', async (_event, filePath: string, newBaseName: string) => {
+    try {
+      return await renameFileUseCase.execute(filePath, newBaseName)
+    } catch (error) {
+      console.error('IPC Error in media:rename-file:', error)
       throw error
     }
   })

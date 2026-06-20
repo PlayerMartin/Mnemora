@@ -6,6 +6,7 @@ interface MediaApi {
   loadFolder: (path: string) => Promise<FolderContent | null>
   moveFile: (filePath: string, targetFolderName: string) => Promise<string>
   deleteFile: (filePath: string) => Promise<string>
+  renameFile: (filePath: string, newBaseName: string) => Promise<string>
   undoAction: (originalPath: string, currentPath: string) => Promise<void>
   store: {
     getAll: () => Promise<PersistedState>

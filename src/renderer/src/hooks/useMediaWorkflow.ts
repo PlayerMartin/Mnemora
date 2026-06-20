@@ -38,6 +38,10 @@ export type MediaWorkflow = {
   handleSaveTemplate: (name: string) => void
   handleLoadTemplate: (name: string) => void
   handleDeleteTemplate: (name: string) => void
+  showRename: boolean
+  openRename: () => void
+  closeRename: () => void
+  handleRename: (baseName: string) => void
 }
 
 export function useMediaWorkflow(): MediaWorkflow {
@@ -47,6 +51,7 @@ export function useMediaWorkflow(): MediaWorkflow {
   const [resumableSession, setResumableSession] = useState<ResumableSession>(null)
   const [showTemplates, setShowTemplates] = useState(false)
   const [isCapturingKey, setIsCapturingKey] = useState(false)
+  const [showRename, setShowRename] = useState(false)
   const hydratedRef = useRef(false)
 
   const toggleHUD = useCallback(() => setShowHUD((p) => !p), [])
@@ -135,6 +140,22 @@ export function useMediaWorkflow(): MediaWorkflow {
     [deleteTemplate]
   )
 
+  const openRename = useCallback(() => {
+    if (folderSession.folderContent?.files[folderSession.currentIndex]) {
+      setShowRename(true)
+    }
+  }, [folderSession.folderContent, folderSession.currentIndex])
+
+  const closeRename = useCallback(() => setShowRename(false), [])
+
+  const handleRename = useCallback(
+    (baseName: string) => {
+      folderSession.handleRename(baseName)
+      setShowRename(false)
+    },
+    [folderSession]
+  )
+
   const startAddKeybind = useCallback(() => {
     setIsCapturingKey(true)
   }, [])
@@ -203,7 +224,10 @@ export function useMediaWorkflow(): MediaWorkflow {
       ...Object.fromEntries(
         Object.entries(keybinds).map(([k]) => [`Ctrl+Shift+${k}`, () => removeKeybind(k)])
       ),
-      'Ctrl+t': openTemplates
+      'Ctrl+t': openTemplates,
+      F2: () => {
+        if (!showHUD) openRename()
+      }
     }),
     [
       showHUD,
@@ -213,12 +237,13 @@ export function useMediaWorkflow(): MediaWorkflow {
       closeHUD,
       clearKeybinds,
       removeKeybind,
-      openTemplates
+      openTemplates,
+      openRename
     ]
   )
 
   useKeyboardShortcuts(keymap, {
-    enabled: !bindingKey && !showTemplates && !isCapturingKey,
+    enabled: !bindingKey && !showTemplates && !isCapturingKey && !showRename,
     onUnmatchedKey: setBindingKey
   })
 
@@ -268,7 +293,11 @@ export function useMediaWorkflow(): MediaWorkflow {
     templates,
     handleSaveTemplate,
     handleLoadTemplate,
-    handleDeleteTemplate
+    handleDeleteTemplate,
+    showRename,
+    openRename,
+    closeRename,
+    handleRename
   }
 }
 
