@@ -15,8 +15,13 @@ function App(): React.JSX.Element {
     closeHUD,
     bindingKey,
     editingFolder,
+    isCapturingKey,
     handleBind,
     handleCancelBind,
+    startAddKeybind,
+    handleKeyCaptured,
+    handleEditKeybind,
+    handleRemoveKeybind,
     folderContent,
     currentIndex,
     sessionStats,
@@ -81,12 +86,17 @@ function App(): React.JSX.Element {
         onClose={closeHUD}
         keybinds={keybinds}
         onOpenTemplates={openTemplates}
+        onAddKeybind={startAddKeybind}
+        onEditKeybind={handleEditKeybind}
+        onRemoveKeybind={handleRemoveKeybind}
       />
       <KeybindDialog
         bindKey={bindingKey}
         onBind={handleBind}
         onCancel={handleCancelBind}
         initialFolderName={editingFolder}
+        isCapturing={isCapturingKey}
+        onCaptureKey={handleKeyCaptured}
       />
       <TemplateManagerDialog
         isOpen={showTemplates}

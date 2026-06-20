@@ -512,3 +512,34 @@ header {
   justify-content: flex-end;
   gap: 1rem;
 }
+
+.hud-context-menu {
+  position: fixed;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  padding: 0.25rem 0;
+  z-index: 1100;
+  min-width: 100px;
+}
+
+.hud-context-menu button {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text-main);
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.hud-context-menu button:hover {
+  background: var(--bg-main);
+}
+
+.hud-context-menu--danger {
+  color: #ef4444 !important;
+}

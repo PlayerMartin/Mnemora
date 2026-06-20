@@ -1,16 +1,26 @@
 import { memo, useState, useEffect, useRef } from 'react'
 
 const INVALID_FOLDER_CHARS_REGEX = /[<>:"/\\|?*]/
+const RESERVED_KEYS = new Set(['?'])
 
 interface KeybindDialogProps {
   bindKey: string | null
   onBind: (key: string, folder: string) => void
   onCancel: () => void
   initialFolderName?: string | null
+  isCapturing?: boolean
+  onCaptureKey?: (key: string) => void
 }
 
 const KeybindDialog = memo(
-  ({ bindKey, onBind, onCancel, initialFolderName }: KeybindDialogProps) => {
+  ({
+    bindKey,
+    onBind,
+    onCancel,
+    initialFolderName,
+    isCapturing,
+    onCaptureKey
+  }: KeybindDialogProps) => {
     const [folderName, setFolderName] = useState(initialFolderName || '')
     const [error, setError] = useState('')
     const inputRef = useRef<HTMLInputElement>(null)
@@ -27,6 +37,46 @@ const KeybindDialog = memo(
       window.addEventListener('keydown', handleKey)
       return () => window.removeEventListener('keydown', handleKey)
     }, [bindKey, initialFolderName, onCancel])
+
+    useEffect(() => {
+      if (!isCapturing || bindKey) return
+
+      const handleKey = (e: KeyboardEvent): void => {
+        if (e.key === 'Escape') {
+          onCancel()
+          return
+        }
+        if (e.ctrlKey || e.altKey || e.metaKey) return
+        if (e.key.length !== 1) return
+        const char = e.key.toLowerCase()
+        if (RESERVED_KEYS.has(char)) return
+        e.preventDefault()
+        onCaptureKey?.(char)
+      }
+      window.addEventListener('keydown', handleKey)
+      return () => window.removeEventListener('keydown', handleKey)
+    }, [isCapturing, bindKey, onCancel, onCaptureKey])
+
+    if (!bindKey && !isCapturing) return null
+
+    if (isCapturing && !bindKey) {
+      return (
+        <div className="keybind-dialog-overlay" onClick={onCancel}>
+          <div className="keybind-dialog" onClick={(e) => e.stopPropagation()}>
+            <h3>Add Keybind</h3>
+            <p>Press the key to bind&hellip;</p>
+            <p style={{ color: 'var(--text-dim)', fontSize: '0.85em' }}>
+              Single letter or number key. Esc to cancel.
+            </p>
+            <div className="dialog-actions">
+              <button type="button" className="secondary-button" onClick={onCancel}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )
+    }
 
     if (!bindKey) return null
 

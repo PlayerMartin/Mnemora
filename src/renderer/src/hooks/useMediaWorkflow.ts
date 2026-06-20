@@ -14,8 +14,13 @@ export type MediaWorkflow = {
   closeHUD: () => void
   bindingKey: string | null
   editingFolder: string | null
+  isCapturingKey: boolean
   handleBind: (key: string, folder: string) => void
   handleCancelBind: () => void
+  startAddKeybind: () => void
+  handleKeyCaptured: (key: string) => void
+  handleEditKeybind: (key: string) => void
+  handleRemoveKeybind: (key: string) => void
   folderContent: FolderContent | null
   currentIndex: number
   sessionStats: SessionStats
@@ -41,6 +46,7 @@ export function useMediaWorkflow(): MediaWorkflow {
   const [editingFolder, setEditingFolder] = useState<string | null>(null)
   const [resumableSession, setResumableSession] = useState<ResumableSession>(null)
   const [showTemplates, setShowTemplates] = useState(false)
+  const [isCapturingKey, setIsCapturingKey] = useState(false)
   const hydratedRef = useRef(false)
 
   const toggleHUD = useCallback(() => setShowHUD((p) => !p), [])
@@ -129,6 +135,34 @@ export function useMediaWorkflow(): MediaWorkflow {
     [deleteTemplate]
   )
 
+  const startAddKeybind = useCallback(() => {
+    setIsCapturingKey(true)
+  }, [])
+
+  const handleKeyCaptured = useCallback(
+    (key: string) => {
+      setBindingKey(key)
+      if (keybinds[key]) setEditingFolder(keybinds[key])
+      setIsCapturingKey(false)
+    },
+    [keybinds]
+  )
+
+  const handleEditKeybind = useCallback(
+    (key: string) => {
+      setEditingFolder(keybinds[key])
+      setBindingKey(key)
+    },
+    [keybinds]
+  )
+
+  const handleRemoveKeybind = useCallback(
+    (key: string) => {
+      removeKeybind(key)
+    },
+    [removeKeybind]
+  )
+
   const keymap: Keymap = useMemo(
     () => ({
       ArrowRight: (e) => {
@@ -184,7 +218,7 @@ export function useMediaWorkflow(): MediaWorkflow {
   )
 
   useKeyboardShortcuts(keymap, {
-    enabled: !bindingKey && !showTemplates,
+    enabled: !bindingKey && !showTemplates && !isCapturingKey,
     onUnmatchedKey: setBindingKey
   })
 
@@ -202,6 +236,7 @@ export function useMediaWorkflow(): MediaWorkflow {
   const handleCancelBind = useCallback(() => {
     setBindingKey(null)
     setEditingFolder(null)
+    setIsCapturingKey(false)
   }, [])
 
   return {
@@ -210,8 +245,13 @@ export function useMediaWorkflow(): MediaWorkflow {
     closeHUD,
     bindingKey,
     editingFolder,
+    isCapturingKey,
     handleBind,
     handleCancelBind,
+    startAddKeybind,
+    handleKeyCaptured,
+    handleEditKeybind,
+    handleRemoveKeybind,
     folderContent: folderSession.folderContent,
     currentIndex: folderSession.currentIndex,
     sessionStats: folderSession.sessionStats,
