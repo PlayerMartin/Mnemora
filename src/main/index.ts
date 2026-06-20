@@ -7,6 +7,7 @@ import { Readable } from 'stream'
 import mime from 'mime-types'
 import { registerMediaHandlers } from './infrastructure/ipc/MediaHandlers'
 import { registerStoreHandlers } from './infrastructure/ipc/StoreHandlers'
+import { setupAutoUpdater } from './infrastructure/updater/setupAutoUpdater'
 import { resolveByteRange } from './infrastructure/protocol/resolveByteRange'
 
 protocol.registerSchemesAsPrivileged([
@@ -111,6 +112,7 @@ app.whenReady().then(() => {
   registerStoreHandlers()
 
   createWindow()
+  setupAutoUpdater()
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
