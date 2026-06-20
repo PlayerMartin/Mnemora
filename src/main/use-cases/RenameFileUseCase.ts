@@ -1,5 +1,6 @@
 import { MediaRepository } from '../domain/repositories/MediaRepository'
 import { extname, dirname, join } from 'path'
+import { retryOnBusy } from './retryOnBusy'
 
 export class RenameFileUseCase {
   constructor(private readonly mediaRepository: MediaRepository) {}
@@ -15,25 +16,6 @@ export class RenameFileUseCase {
       candidate = `${newBaseName}-${suffix}`
     }
 
-    let retries = 5
-    while (retries > 0) {
-      try {
-        return await this.mediaRepository.renameFile(filePath, candidate)
-      } catch (error: unknown) {
-        if (
-          error &&
-          typeof error === 'object' &&
-          'code' in error &&
-          error.code === 'EBUSY' &&
-          retries > 1
-        ) {
-          retries--
-          await new Promise((resolve) => setTimeout(resolve, 200))
-          continue
-        }
-        throw error
-      }
-    }
-    return join(dir, candidate + ext)
+    return retryOnBusy(() => this.mediaRepository.renameFile(filePath, candidate))
   }
 }

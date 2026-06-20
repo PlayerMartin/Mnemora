@@ -43,7 +43,9 @@ function App(): React.JSX.Element {
     showRename,
     openRename,
     closeRename,
-    handleRename
+    handleRename,
+    lastError,
+    clearError
   } = useMediaWorkflow()
 
   if (!folderContent) {
@@ -67,6 +69,8 @@ function App(): React.JSX.Element {
           totalFiles={folderContent.files.length}
           onToggleHUD={toggleHUD}
           onChangeFolder={handleSelectFolder}
+          error={lastError}
+          onDismissError={clearError}
         />
 
         {currentIndex >= folderContent.files.length ? (

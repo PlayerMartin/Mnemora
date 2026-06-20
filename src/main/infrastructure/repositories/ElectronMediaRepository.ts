@@ -18,7 +18,7 @@ export class ElectronMediaRepository implements MediaRepository {
   async deleteFile(filePath: string): Promise<string> {
     const trashDir = join(dirname(filePath), '.trash')
     await mkdir(trashDir, { recursive: true })
-    const targetPath = join(trashDir, basename(filePath))
+    const targetPath = await this.nonCollidingPath(join(trashDir, basename(filePath)))
     await rename(filePath, targetPath)
     return targetPath
   }
@@ -57,7 +57,7 @@ export class ElectronMediaRepository implements MediaRepository {
         if (type) {
           const stats = await stat(fullPath)
           files.push({
-            id: entry.name, // Using name as ID for simplicity now
+            id: fullPath,
             name: entry.name,
             path: fullPath,
             type,
@@ -71,6 +71,16 @@ export class ElectronMediaRepository implements MediaRepository {
     }
 
     return files
+  }
+
+  async nonCollidingPath(targetPath: string): Promise<string> {
+    if (!(await this.fileExists(targetPath))) return targetPath
+    const dir = dirname(targetPath)
+    const ext = extname(targetPath)
+    const base = basename(targetPath, ext)
+    let n = 1
+    while (await this.fileExists(join(dir, `${base} (${n})${ext}`))) n++
+    return join(dir, `${base} (${n})${ext}`)
   }
 
   private getMediaType(ext: string): 'image' | 'video' | 'audio' | null {

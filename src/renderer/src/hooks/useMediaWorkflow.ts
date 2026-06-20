@@ -42,6 +42,8 @@ export type MediaWorkflow = {
   openRename: () => void
   closeRename: () => void
   handleRename: (baseName: string) => void
+  lastError: string | null
+  clearError: () => void
 }
 
 export function useMediaWorkflow(): MediaWorkflow {
@@ -297,7 +299,9 @@ export function useMediaWorkflow(): MediaWorkflow {
     showRename,
     openRename,
     closeRename,
-    handleRename
+    handleRename,
+    lastError: folderSession.lastError,
+    clearError: folderSession.clearError
   }
 }
 

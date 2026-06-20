@@ -3,6 +3,23 @@ import { FolderContent, MediaFile } from '../../../shared/types'
 
 export const HISTORY_STACK_SIZE = 200
 
+function friendlyError(error: unknown): string {
+  const code =
+    error && typeof error === 'object' && 'code' in error ? (error as { code: string }).code : null
+  switch (code) {
+    case 'ENOENT':
+      return 'File not found — it may have been moved or deleted.'
+    case 'EACCES':
+      return 'Permission denied — the file or folder is read-only.'
+    case 'EBUSY':
+      return 'File is in use by another program.'
+    case 'EXDEV':
+      return 'Cannot move across different drives.'
+    default:
+      return error instanceof Error ? error.message : 'An unexpected error occurred.'
+  }
+}
+
 export type ActionHistoryItem = {
   type: 'move' | 'delete' | 'rename'
   originalPath: string
@@ -22,6 +39,8 @@ export type FolderSession = {
   folderContent: FolderContent | null
   currentIndex: number
   sessionStats: SessionStats
+  lastError: string | null
+  clearError: () => void
   handleNext: () => void
   handlePrev: () => void
   handleSelectFolder: () => Promise<boolean>
@@ -42,7 +61,10 @@ export function useFolderSession(): FolderSession {
     movedCount: 0,
     foldersCount: {}
   })
+  const [lastError, setLastError] = useState<string | null>(null)
   const isMovingRef = useRef(false)
+
+  const clearError = useCallback(() => setLastError(null), [])
 
   const filesLength = folderContent?.files.length ?? 0
 
@@ -81,6 +103,7 @@ export function useFolderSession(): FolderSession {
   const performFileAction = useCallback(
     async (actionType: 'move' | 'delete', action: () => Promise<string>, targetFolder?: string) => {
       if (!folderContent || isMovingRef.current) return
+      setLastError(null)
       const currentFile = folderContent.files[currentIndex]
       if (!currentFile) return
 
@@ -126,7 +149,7 @@ export function useFolderSession(): FolderSession {
           return newStats
         })
       } catch (error) {
-        console.error('File action failed:', error)
+        setLastError(friendlyError(error))
         setFolderContent(folderContent)
         setCurrentIndex(currentIndex)
       } finally {
@@ -140,6 +163,7 @@ export function useFolderSession(): FolderSession {
 
   const handleUndo = useCallback(async () => {
     if (isMovingRef.current || history.length === 0 || !folderContent) return
+    setLastError(null)
     isMovingRef.current = true
 
     const lastAction = history[history.length - 1]
@@ -183,7 +207,7 @@ export function useFolderSession(): FolderSession {
         })
       }
     } catch (error) {
-      console.error('Undo failed:', error)
+      setLastError(friendlyError(error))
     } finally {
       setTimeout(() => {
         isMovingRef.current = false
@@ -213,6 +237,7 @@ export function useFolderSession(): FolderSession {
   const handleRename = useCallback(
     async (newBaseName: string) => {
       if (!folderContent || isMovingRef.current) return
+      setLastError(null)
       const currentFile = folderContent.files[currentIndex]
       if (!currentFile) return
 
@@ -225,7 +250,7 @@ export function useFolderSession(): FolderSession {
         setFolderContent((prev) => {
           if (!prev) return null
           const newFiles = [...prev.files]
-          newFiles[currentIndex] = { ...currentFile, name: newName, path: newPath, id: newName }
+          newFiles[currentIndex] = { ...currentFile, name: newName, path: newPath, id: newPath }
           return { ...prev, files: newFiles }
         })
 
@@ -245,7 +270,7 @@ export function useFolderSession(): FolderSession {
             : newHistory
         })
       } catch (error) {
-        console.error('Rename failed:', error)
+        setLastError(friendlyError(error))
       } finally {
         setTimeout(() => {
           isMovingRef.current = false
@@ -263,6 +288,8 @@ export function useFolderSession(): FolderSession {
     folderContent,
     currentIndex,
     sessionStats,
+    lastError,
+    clearError,
     handleNext,
     handlePrev,
     handleSelectFolder,

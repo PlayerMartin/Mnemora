@@ -7,4 +7,5 @@ export interface MediaRepository {
   undoAction(originalPath: string, currentPath: string): Promise<void>
   renameFile(filePath: string, newBaseName: string): Promise<string>
   fileExists(path: string): Promise<boolean>
+  nonCollidingPath(targetPath: string): Promise<string>
 }

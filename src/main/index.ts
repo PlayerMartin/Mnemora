@@ -60,31 +60,51 @@ app.whenReady().then(() => {
   })
 
   protocol.handle('media', async (request) => {
-    const url = new URL(request.url)
-    let path = decodeURIComponent(url.pathname)
-    if (url.host && url.host.length === 1) {
-      path = `${url.host}:${path}`
-    }
-    if (path.startsWith('/')) path = path.slice(1)
-
-    const rangeHeader = request.headers.get('Range')
-    if (!rangeHeader) {
-      return net.fetch(pathToFileURL(path).toString())
-    }
-
-    const { start, end, fileSize } = await resolveByteRange(path, rangeHeader)
-    const contentType = mime.lookup(path) || 'application/octet-stream'
-
-    const webStream = Readable.toWeb(createReadStream(path, { start, end })) as ReadableStream
-    return new Response(webStream, {
-      status: 206,
-      headers: {
-        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
-        'Accept-Ranges': 'bytes',
-        'Content-Length': String(end - start + 1),
-        'Content-Type': contentType
+    try {
+      const url = new URL(request.url)
+      let path = decodeURIComponent(url.pathname)
+      if (url.host && url.host.length === 1) {
+        path = `${url.host}:${path}`
       }
-    })
+      if (path.startsWith('/')) path = path.slice(1)
+
+      const rangeHeader = request.headers.get('Range')
+      if (!rangeHeader) {
+        return await net.fetch(pathToFileURL(path).toString())
+      }
+
+      const result = await resolveByteRange(path, rangeHeader)
+
+      if (!result.ok) {
+        return new Response(null, {
+          status: 416,
+          headers: { 'Content-Range': `bytes */${result.fileSize}` }
+        })
+      }
+
+      const { start, end, fileSize } = result
+      const contentType = mime.lookup(path) || 'application/octet-stream'
+
+      const nodeStream = createReadStream(path, { start, end })
+      nodeStream.on('error', () => nodeStream.destroy())
+      const webStream = Readable.toWeb(nodeStream) as ReadableStream
+
+      return new Response(webStream, {
+        status: 206,
+        headers: {
+          'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+          'Accept-Ranges': 'bytes',
+          'Content-Length': String(end - start + 1),
+          'Content-Type': contentType
+        }
+      })
+    } catch (error: unknown) {
+      const code = error && typeof error === 'object' && 'code' in error ? error.code : undefined
+      if (code === 'ENOENT') {
+        return new Response(null, { status: 404 })
+      }
+      return new Response(null, { status: 500 })
+    }
   })
 
   registerMediaHandlers()
